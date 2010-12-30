@@ -33,19 +33,20 @@ scons/build/setup.py: .status
 	tar xzvf scons*.tar.gz && rm *.tar.gz && mv scons*/* .
 	touch $@
 
-v8/ChangeLog: .status
+v8/SConstruct: .status
 	svn checkout ${v8svn} v8
+	sed -i "s/GCC_EXTRA_CCFLAGS = \[\]/GCC_EXTRA_CCFLAGS = [ '-fno-builtin-memcpy' ]/" $@
 	touch $@
 
-v8/${libname}.so: v8/ChangeLog scons/bin/scons .status
+v8/${libname}.so: v8/SConstruct scons/bin/scons .status
 	cd v8 && CXX=`which g++` python2 ../scons/bin/scons ${SCONS_ARGS} library=shared
 
-v8/${libname}.a: v8/ChangeLog scons/bin/scons .status
+v8/${libname}.a: v8/SConstruct scons/bin/scons .status
 	cd v8 && CXX=`which g++` python2 ../scons/bin/scons ${SCONS_ARGS} library=static
 
 getscons: scons/build/setup.py
 buildscons: scons/bin/scons
-getv8: v8/ChangeLog
+getv8: v8/SConstruct
 buildv8: v8/${libname}.so v8/${libname}.a
 
 clean:
