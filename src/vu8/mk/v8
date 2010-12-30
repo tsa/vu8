@@ -51,6 +51,3 @@ buildv8: v8/${libname}.so v8/${libname}.a
 
 clean:
 	rm -rf scons v8 obj
-
-cmake:
-	mkdir -p obj && cd obj && cmake ..

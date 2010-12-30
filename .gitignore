@@ -1,4 +1,1 @@
-scons
-v8
-.status
-obj
+src/vu8/obj
