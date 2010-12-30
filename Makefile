@@ -1,4 +1,4 @@
-.PHONY: default getv8 getscons buildscons clean
+.PHONY: default getv8 getscons buildscons clean cmake
 
 v8svn   := http://v8.googlecode.com/svn/trunk/
 scons_v := 2.0.1
@@ -26,10 +26,16 @@ v8/ChangeLog: .status
 v8/libv8.so: v8/ChangeLog scons/bin/scons .status
 	cd v8 && CXX=`which g++` ../scons/bin/scons library=shared arch=${arch}
 
+v8/libv8.a: v8/ChangeLog scons/bin/scons .status
+	cd v8 && CXX=`which g++` ../scons/bin/scons library=static arch=${arch}
+
 getscons: scons/build/setup.py
 buildscons: scons/bin/scons
 getv8: v8/ChangeLog
-buildv8: v8/libv8.so
+buildv8: v8/libv8.so v8/libv8.a
 
 clean:
 	rm -rf scons v8
+
+cmake:
+	mkdir -p obj && cd obj && cmake ..
