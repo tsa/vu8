@@ -8,7 +8,7 @@ scons_v    := 2.0.1
 scons      := http://downloads.sourceforge.net/project/scons/scons/${scons_v}/scons-${scons_v}.tar.gz
 arch       := x64
 scons_jobs := 1
-mode       := debug
+mode       := release
 
 SCONS_ARGS = -j${scons_jobs} arch=${arch} mode=${mode} snapshot=on
 # \ profilingsupport=off debuggersupport=off
@@ -25,7 +25,7 @@ default: buildv8
 	touch $@
 
 scons/bin/scons: scons/build/setup.py
-	cd scons/build && python setup.py install --prefix=$$PWD/..
+	cd scons/build && python2 setup.py install --prefix=$$PWD/..
 	touch $@
 
 scons/build/setup.py: .status
@@ -38,10 +38,10 @@ v8/ChangeLog: .status
 	touch $@
 
 v8/${libname}.so: v8/ChangeLog scons/bin/scons .status
-	cd v8 && CXX=`which g++` ../scons/bin/scons ${SCONS_ARGS} library=shared
+	cd v8 && CXX=`which g++` python2 ../scons/bin/scons ${SCONS_ARGS} library=shared
 
 v8/${libname}.a: v8/ChangeLog scons/bin/scons .status
-	cd v8 && CXX=`which g++` ../scons/bin/scons ${SCONS_ARGS} library=static
+	cd v8 && CXX=`which g++` python2 ../scons/bin/scons ${SCONS_ARGS} library=static
 
 getscons: scons/build/setup.py
 buildscons: scons/bin/scons
