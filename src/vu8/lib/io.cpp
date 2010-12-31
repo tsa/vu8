@@ -28,6 +28,7 @@ struct FileBase {
         return v8::Undefined();
     }
 
+    FileBase(const v8::Arguments& args) {}
   protected:
     std::fstream stream_;
 };
@@ -62,7 +63,7 @@ struct FileWriter : FileBase {
         return v8::Undefined();
     }
 
-    FileWriter(const v8::Arguments& args) {
+    FileWriter(const v8::Arguments& args) : FileBase(args) {
         if (1 == args.Length()) Open(args);
     }
 };
@@ -90,31 +91,32 @@ struct FileReader : FileBase {
         }
     }
 
-    FileReader(const v8::Arguments& args) {
+    FileReader(const v8::Arguments& args) : FileBase(args) {
         if (1 == args.Length()) Open(args);
     }
 };
 
 v8::Handle<v8::Value> Open() {
     Module mod;
-    Class<FileWriter, FileBase> fileWriter;
+
+    // TODO: AbstractClass?
+    Class<FileBase> fileBase;
+    fileBase.Method<&FileBase::Close>("close")
+            .Method<&FileBase::Good>("good")
+            .Method<&FileBase::IsOpen>("is_open")
+            .Method<&FileBase::Eof>("eof")
+            ;
+
+    Class<FileWriter, FileBase> fileWriter(fileBase);
     fileWriter.Method<&FileWriter::Open>("open")
               .Method<&FileWriter::Print>("print")
               .Method<&FileWriter::Println>("println")
-              .Method<&FileBase::Close>("close")
-              .Method<&FileBase::Good>("good")
-              .Method<&FileBase::IsOpen>("is_open")
-              .Method<&FileBase::Eof>("eof")
-    ;
+              ;
 
-    Class<FileReader, FileBase> fileReader;
+    Class<FileReader, FileBase> fileReader(fileBase);
     fileReader.Method<&FileReader::Open>("open")
               .Method<&FileReader::GetLine>("getln")
-              .Method<&FileBase::Close>("close")
-              .Method<&FileBase::Good>("good")
-              .Method<&FileBase::IsOpen>("is_open")
-              .Method<&FileBase::Eof>("eof")
-    ;
+              ;
 
     mod("FileWriter", fileWriter);
     mod("FileReader", fileReader);

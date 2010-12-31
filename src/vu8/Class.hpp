@@ -126,6 +126,11 @@ class Class {
             v8::FunctionTemplate::New(&singleton_t::template ForwardBase<Ptr>));
         return *this;
     }
+
+    Class(Class<P>& parent) {
+        FunctionTemplate()->Inherit(parent.FunctionTemplate());
+    };
+    Class() {};
 };
 
 } }
