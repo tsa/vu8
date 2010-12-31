@@ -20,9 +20,13 @@ struct NoArgAllocator {
     static inline T *New(const v8::Arguments& args) { return new T(); }
 };
 
+template <class T, template <class> class Allocator = NoArgAllocator>
+struct BasicClass;
 
-template < class T, class Allocator>
-struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
+template <class T, template <class> class Allocator>
+class ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
+    friend class BasicClass<T, Allocator>;
+
     typedef ClassSingleton<T, Allocator> self;
     typedef v8::Handle<v8::Value> (T::*MethodCallback)(const v8::Arguments& args);
 
@@ -36,6 +40,7 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
         return self::Instance().WrapObject(args);
     }
 
+  private:
     template <v8::Handle<v8::Value> (T::*Ptr)(const v8::Arguments&)>
     static inline v8::Handle<v8::Value> Forward(const v8::Arguments& args) {
         return ForwardBase<T, Ptr>(args);
@@ -64,7 +69,7 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
 
     v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
-        T *wrap = Allocator::New(args);
+        T *wrap = Allocator<T>::New(args);
         v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
@@ -81,7 +86,6 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
         func_->InstanceTemplate()->SetInternalFieldCount(1);
     }
 
-  private:
     v8::Persistent<v8::FunctionTemplate> func_;
     friend class Singleton<self>;
 };
@@ -93,12 +97,11 @@ class Nothing {};
 // P = optional parent class
 // Allocator = static wrapper object memory allocator, by default
 //             supports zero-argument constructor
-template <class T, template <class> class Allocator = NoArgAllocator>
+template <class T, template <class> class Allocator>
 struct BasicClass {
-    typedef ClassSingleton< T, Allocator<T> >  singleton_t;
+    typedef ClassSingleton<T, Allocator>  singleton_t;
 
   private:
-
     typedef typename singleton_t::MethodCallback  MethodCallback;
 
     inline singleton_t& Instance() { return singleton_t::Instance(); }
