@@ -10,14 +10,9 @@
 
 namespace tsa { namespace vu8 {
 
-template <class T, class P>
-class Class;
-
-template <class T, class P>
-class ClassSingleton : Singleton< ClassSingleton<T, P> > {
-    friend class Class<T, P>;
-
-    typedef ClassSingleton<T, P> self;
+template <class T>
+struct ClassSingleton : Singleton< ClassSingleton<T> > {
+    typedef ClassSingleton<T> self;
     typedef v8::Handle<v8::Value> (T::*MethodCallback)(const v8::Arguments& args);
 
     v8::Persistent<v8::FunctionTemplate> FunctionTemplate() {
@@ -30,23 +25,16 @@ class ClassSingleton : Singleton< ClassSingleton<T, P> > {
         return self::Instance().WrapObject(args);
     }
 
-  private:
     static inline v8::Handle<v8::Value> Constructor(const v8::Arguments& args) {
         return v8::Undefined();
     }
 
     template <v8::Handle<v8::Value> (T::*Ptr)(const v8::Arguments&)>
     static inline v8::Handle<v8::Value> Forward(const v8::Arguments& args) {
-        v8::HandleScope scope;
-        v8::Local<v8::Object> self = args.Holder();
-        v8::Local<v8::External> wrap =
-            v8::Local<v8::External>::Cast(self->GetInternalField(0));
-
-        T& obj = *static_cast<T *>(wrap->Value());
-        return scope.Close((obj.*Ptr)(args));
+        return ForwardBase<T, Ptr>(args);
     }
 
-    template <v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
+    template <class P, v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
     static inline v8::Handle<v8::Value> ForwardBase(const v8::Arguments& args) {
         v8::HandleScope scope;
         v8::Local<v8::Object> self = args.Holder();
@@ -97,9 +85,9 @@ class Nothing {};
 // T = class
 // P = optional parent class
 template <class T, class P = Nothing>
-class Class {
+class BasicClass {
   public:
-    typedef ClassSingleton<T, P>  singleton_t;
+    typedef ClassSingleton<T>  singleton_t;
 
   private:
     typedef typename singleton_t::MethodCallback  MethodCallback;
@@ -112,7 +100,7 @@ class Class {
     }
 
     template <v8::Handle<v8::Value> (T::*Ptr)(const v8::Arguments&)>
-    inline Class& Method(char const *name) {
+    inline BasicClass& Method(char const *name) {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
             v8::FunctionTemplate::New(&singleton_t::template Forward<Ptr>));
@@ -120,17 +108,23 @@ class Class {
     }
 
     template <v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
-    inline Class& Method(char const *name) {
+    inline BasicClass& Method(char const *name) {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
-            v8::FunctionTemplate::New(&singleton_t::template ForwardBase<Ptr>));
+            v8::FunctionTemplate::New(&singleton_t::template ForwardBase<P, Ptr>));
         return *this;
     }
 
-    Class(Class<P>& parent) {
+    BasicClass(BasicClass<P>& parent) {
         FunctionTemplate()->Inherit(parent.FunctionTemplate());
     };
-    Class() {};
+    BasicClass() {};
+};
+
+template <class T, class P = Nothing>
+struct Class : BasicClass<T, P> {
+    Class(Class<P>& parent) : BasicClass<T, P>(parent) {}
+    Class() {}
 };
 
 } }
