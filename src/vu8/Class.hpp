@@ -27,7 +27,7 @@ class ClassSingleton : Singleton< ClassSingleton<T> > {
   public:
     static inline v8::Handle<v8::Value>
     ConstructorFunction(const v8::Arguments& args) {
-        return self::Instance().WrapObject();
+        return self::Instance().WrapObject(args);
     }
 
   private:
@@ -55,9 +55,9 @@ class ClassSingleton : Singleton< ClassSingleton<T> > {
         object.Clear();
     }
 
-    v8::Handle<v8::Object> WrapObject() {
+    v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
-        T *wrap = new T();
+        T *wrap = new T(args);
         v8::Local<v8::Object> localObj =
             func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =

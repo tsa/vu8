@@ -44,6 +44,22 @@ struct FileWriter {
         return v8::Undefined();
     }
 
+    v8::Handle<v8::Value> Good(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.good());
+    }
+
+    v8::Handle<v8::Value> IsOpen(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.is_open());
+    }
+
+    v8::Handle<v8::Value> Eof(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.eof());
+    }
+
+    FileWriter(const v8::Arguments& args) {
+        if (1 == args.Length()) Open(args);
+    }
+
     std::fstream stream_;
 };
 
@@ -74,6 +90,22 @@ struct FileReader {
         }
     }
 
+    v8::Handle<v8::Value> Good(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.good());
+    }
+
+    v8::Handle<v8::Value> IsOpen(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.is_open());
+    }
+
+    v8::Handle<v8::Value> Eof(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.eof());
+    }
+
+    FileReader(const v8::Arguments& args) {
+        if (1 == args.Length()) Open(args);
+    }
+
     std::fstream stream_;
 };
 
@@ -84,12 +116,18 @@ v8::Handle<v8::Value> Open() {
               .Method<&FileWriter::Close>("close")
               .Method<&FileWriter::Print>("print")
               .Method<&FileWriter::Println>("println")
+              .Method<&FileWriter::Good>("good")
+              .Method<&FileWriter::IsOpen>("is_open")
+              .Method<&FileWriter::Eof>("eof")
     ;
 
     Class<FileReader> fileReader;
     fileReader.Method<&FileReader::Open>("open")
               .Method<&FileReader::Close>("close")
               .Method<&FileReader::GetLine>("getln")
+              .Method<&FileReader::Good>("good")
+              .Method<&FileReader::IsOpen>("is_open")
+              .Method<&FileReader::Eof>("eof")
     ;
 
     mod("FileWriter", fileWriter);

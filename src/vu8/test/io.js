@@ -1,10 +1,10 @@
 var io = loadmodule('io'),
     console = loadmodule('console')
 
-var writer = new io.FileWriter()
+var writer = new io.FileWriter("punko")
 
-if (! writer.open("punko")) {
-    console.println("could not load file for read")
+if (! writer.is_open()) {
+    console.println("could not load file for write")
 }
 else {
     writer.println("hello friend")
@@ -12,10 +12,13 @@ else {
     writer.close()
 }
 
-var reader = new io.FileReader()
-if (! reader.open("punko"))
-    console.println("could not load file for write")
-else for (var line = reader.getln(); line; line = reader.getln()) {
-    console.println("tata",line)
+var reader = new io.FileReader("punko")
+if (! reader.is_open()) {
+    console.println("could not load file for read")
+}
+else {
+    for (var line = reader.getln(); line; line = reader.getln()) {
+        console.println("tata",line)
+    }
 }
 
