@@ -10,7 +10,29 @@
 
 namespace tsa { namespace vu8 { namespace io {
 
-struct FileWriter {
+struct FileBase {
+    v8::Handle<v8::Value> IsOpen(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.is_open());
+    }
+
+    v8::Handle<v8::Value> Good(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.good());
+    }
+
+    v8::Handle<v8::Value> Eof(const v8::Arguments& args) {
+        return v8::Boolean::New(stream_.eof());
+    }
+
+    v8::Handle<v8::Value> Close(const v8::Arguments& args) {
+        stream_.close();
+        return v8::Undefined();
+    }
+
+  protected:
+    std::fstream stream_;
+};
+
+struct FileWriter : FileBase {
     v8::Handle<v8::Value> Open(const v8::Arguments& args) {
         if (1 != args.Length())
             return Throw("FileWriter.open: incorrect number of arguments");
@@ -20,10 +42,6 @@ struct FileWriter {
         char const *str = ToCString(utf8Str);
         stream_.open(str, std::ios_base::out);
         return scope.Close(v8::Boolean::New(stream_.good()));
-    }
-
-    v8::Handle<v8::Value> Close(const v8::Arguments& args) {
-        stream_.close();
     }
 
     v8::Handle<v8::Value> Print(const v8::Arguments& args) {
@@ -44,26 +62,12 @@ struct FileWriter {
         return v8::Undefined();
     }
 
-    v8::Handle<v8::Value> Good(const v8::Arguments& args) {
-        return v8::Boolean::New(stream_.good());
-    }
-
-    v8::Handle<v8::Value> IsOpen(const v8::Arguments& args) {
-        return v8::Boolean::New(stream_.is_open());
-    }
-
-    v8::Handle<v8::Value> Eof(const v8::Arguments& args) {
-        return v8::Boolean::New(stream_.eof());
-    }
-
     FileWriter(const v8::Arguments& args) {
         if (1 == args.Length()) Open(args);
     }
-
-    std::fstream stream_;
 };
 
-struct FileReader {
+struct FileReader : FileBase {
     v8::Handle<v8::Value> Open(const v8::Arguments& args) {
         if (1 != args.Length())
             return Throw("FileWriter.open: incorrect number of arguments");
@@ -73,10 +77,6 @@ struct FileReader {
         char const *str = ToCString(utf8Str);
         stream_.open(str, std::ios_base::in);
         return scope.Close(v8::Boolean::New(stream_.good()));
-    }
-
-    v8::Handle<v8::Value> Close(const v8::Arguments& args) {
-        stream_.close();
     }
 
     v8::Handle<v8::Value> GetLine(const v8::Arguments& args) {
@@ -90,44 +90,30 @@ struct FileReader {
         }
     }
 
-    v8::Handle<v8::Value> Good(const v8::Arguments& args) {
-        return v8::Boolean::New(stream_.good());
-    }
-
-    v8::Handle<v8::Value> IsOpen(const v8::Arguments& args) {
-        return v8::Boolean::New(stream_.is_open());
-    }
-
-    v8::Handle<v8::Value> Eof(const v8::Arguments& args) {
-        return v8::Boolean::New(stream_.eof());
-    }
-
     FileReader(const v8::Arguments& args) {
         if (1 == args.Length()) Open(args);
     }
-
-    std::fstream stream_;
 };
 
 v8::Handle<v8::Value> Open() {
     Module mod;
-    Class<FileWriter> fileWriter;
+    Class<FileWriter, FileBase> fileWriter;
     fileWriter.Method<&FileWriter::Open>("open")
-              .Method<&FileWriter::Close>("close")
               .Method<&FileWriter::Print>("print")
               .Method<&FileWriter::Println>("println")
-              .Method<&FileWriter::Good>("good")
-              .Method<&FileWriter::IsOpen>("is_open")
-              .Method<&FileWriter::Eof>("eof")
+              .Method<&FileBase::Close>("close")
+              .Method<&FileBase::Good>("good")
+              .Method<&FileBase::IsOpen>("is_open")
+              .Method<&FileBase::Eof>("eof")
     ;
 
-    Class<FileReader> fileReader;
+    Class<FileReader, FileBase> fileReader;
     fileReader.Method<&FileReader::Open>("open")
-              .Method<&FileReader::Close>("close")
               .Method<&FileReader::GetLine>("getln")
-              .Method<&FileReader::Good>("good")
-              .Method<&FileReader::IsOpen>("is_open")
-              .Method<&FileReader::Eof>("eof")
+              .Method<&FileBase::Close>("close")
+              .Method<&FileBase::Good>("good")
+              .Method<&FileBase::IsOpen>("is_open")
+              .Method<&FileBase::Eof>("eof")
     ;
 
     mod("FileWriter", fileWriter);

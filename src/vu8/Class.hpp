@@ -10,14 +10,14 @@
 
 namespace tsa { namespace vu8 {
 
-template <class T>
+template <class T, class P>
 class Class;
 
-template <class T>
-class ClassSingleton : Singleton< ClassSingleton<T> > {
-    friend class Class<T>;
+template <class T, class P>
+class ClassSingleton : Singleton< ClassSingleton<T, P> > {
+    friend class Class<T, P>;
 
-    typedef ClassSingleton<T> self;
+    typedef ClassSingleton<T, P> self;
     typedef v8::Handle<v8::Value> (T::*MethodCallback)(const v8::Arguments& args);
 
     v8::Persistent<v8::FunctionTemplate> FunctionTemplate() {
@@ -45,6 +45,18 @@ class ClassSingleton : Singleton< ClassSingleton<T> > {
         T& obj = *static_cast<T *>(wrap->Value());
         return scope.Close((obj.*Ptr)(args));
     }
+
+    template <v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
+    static inline v8::Handle<v8::Value> ForwardBase(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        v8::Local<v8::Object> self = args.Holder();
+        v8::Local<v8::External> wrap =
+            v8::Local<v8::External>::Cast(self->GetInternalField(0));
+
+        P& obj = *static_cast<P *>(wrap->Value());
+        return scope.Close((obj.*Ptr)(args));
+    }
+
 
     static inline void MadeWeak(v8::Persistent<v8::Value> object,
                                 void                     *parameter)
@@ -80,11 +92,14 @@ class ClassSingleton : Singleton< ClassSingleton<T> > {
     friend class Singleton<self>;
 };
 
+class Nothing {};
 
-template <class T>
+// T = class
+// P = optional parent class
+template <class T, class P = Nothing>
 class Class {
   public:
-    typedef ClassSingleton<T>                     singleton_t;
+    typedef ClassSingleton<T, P>  singleton_t;
 
   private:
     typedef typename singleton_t::MethodCallback  MethodCallback;
@@ -101,6 +116,14 @@ class Class {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
             v8::FunctionTemplate::New(&singleton_t::template Forward<Ptr>));
+        return *this;
+    }
+
+    template <v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
+    inline Class& Method(char const *name) {
+        FunctionTemplate()->PrototypeTemplate()->Set(
+            v8::String::New(name),
+            v8::FunctionTemplate::New(&singleton_t::template ForwardBase<Ptr>));
         return *this;
     }
 };
