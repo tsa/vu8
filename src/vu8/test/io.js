@@ -1,15 +1,19 @@
 var io = loadmodule('io'),
     console = loadmodule('console')
 
-var writer = new io.FileWriter("punko")
+var write1 = new io.FileWriter("punko")
+var write2 = new io.FileWriter("bunko")
 
-if (! writer.is_open()) {
+if (! write1.is_open()) {
     console.println("could not load file for write")
 }
 else {
-    writer.println("hello friend")
-    writer.println("fond of the night")
-    writer.close()
+    write1.println("hello friend")
+    write2.println("hollo frond")
+    write1.println("fond of the night")
+    write2.println("frond frond of the night")
+    write1.close()
+    write2.close()
 }
 
 var reader = new io.FileReader("punko")
