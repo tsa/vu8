@@ -11,8 +11,19 @@
 namespace tsa { namespace vu8 {
 
 template <class T>
-struct ClassSingleton : Singleton< ClassSingleton<T> > {
-    typedef ClassSingleton<T> self;
+struct ArgAllocator {
+    static inline T *New(const v8::Arguments& args) { return new T(args); }
+};
+
+template <class T>
+struct NoArgAllocator {
+    static inline T *New(const v8::Arguments& args) { return new T(); }
+};
+
+
+template < class T, class Allocator>
+struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
+    typedef ClassSingleton<T, Allocator> self;
     typedef v8::Handle<v8::Value> (T::*MethodCallback)(const v8::Arguments& args);
 
     v8::Persistent<v8::FunctionTemplate> FunctionTemplate() {
@@ -57,7 +68,7 @@ struct ClassSingleton : Singleton< ClassSingleton<T> > {
 
     v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
-        T *wrap = new T(args);
+        T *wrap = Allocator::New(args);
         v8::Local<v8::Object> localObj =
             func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =
@@ -82,14 +93,18 @@ struct ClassSingleton : Singleton< ClassSingleton<T> > {
 
 class Nothing {};
 
+// basic class
 // T = class
 // P = optional parent class
-template <class T, class P = Nothing>
-class BasicClass {
-  public:
-    typedef ClassSingleton<T>  singleton_t;
+// Allocator = static wrapper object memory allocator, by default
+//             supports zero-argument constructor
+template <class T, class P = Nothing,
+          template <class> class Allocator = NoArgAllocator>
+struct BasicClass {
+    typedef ClassSingleton< T, Allocator<T> >  singleton_t;
 
   private:
+
     typedef typename singleton_t::MethodCallback  MethodCallback;
 
     inline singleton_t& Instance() { return singleton_t::Instance(); }
@@ -115,15 +130,22 @@ class BasicClass {
         return *this;
     }
 
-    BasicClass(BasicClass<P>& parent) {
+    template <class U, template <class> class V>
+    BasicClass(BasicClass<P, U, V>& parent) {
         FunctionTemplate()->Inherit(parent.FunctionTemplate());
     };
     BasicClass() {};
 };
 
+// class with constructor
+// T = class
+// P = optional parent class
 template <class T, class P = Nothing>
-struct Class : BasicClass<T, P> {
-    Class(Class<P>& parent) : BasicClass<T, P>(parent) {}
+struct Class : BasicClass<T, P, ArgAllocator> {
+    typedef BasicClass<T, P, ArgAllocator> base;
+
+    template <class U, template <class> class V>
+    Class(BasicClass<P, U, V>& parent) : base(parent) {}
     Class() {}
 };
 

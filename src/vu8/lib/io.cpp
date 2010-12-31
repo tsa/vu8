@@ -28,7 +28,6 @@ struct FileBase {
         return v8::Undefined();
     }
 
-    FileBase(const v8::Arguments& args) {}
   protected:
     std::fstream stream_;
 };
@@ -63,7 +62,7 @@ struct FileWriter : FileBase {
         return v8::Undefined();
     }
 
-    FileWriter(const v8::Arguments& args) : FileBase(args) {
+    FileWriter(const v8::Arguments& args) {
         if (1 == args.Length()) Open(args);
     }
 };
@@ -91,7 +90,7 @@ struct FileReader : FileBase {
         }
     }
 
-    FileReader(const v8::Arguments& args) : FileBase(args) {
+    FileReader(const v8::Arguments& args) {
         if (1 == args.Length()) Open(args);
     }
 };
@@ -99,8 +98,7 @@ struct FileReader : FileBase {
 v8::Handle<v8::Value> Open() {
     Module mod;
 
-    // TODO: AbstractClass?
-    Class<FileBase> fileBase;
+    BasicClass<FileBase> fileBase;
     fileBase.Method<&FileBase::Close>("close")
             .Method<&FileBase::Good>("good")
             .Method<&FileBase::IsOpen>("is_open")
