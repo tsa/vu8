@@ -93,8 +93,7 @@ class Nothing {};
 // P = optional parent class
 // Allocator = static wrapper object memory allocator, by default
 //             supports zero-argument constructor
-template <class T, class P = Nothing,
-          template <class> class Allocator = NoArgAllocator>
+template <class T, template <class> class Allocator = NoArgAllocator>
 struct BasicClass {
     typedef ClassSingleton< T, Allocator<T> >  singleton_t;
 
@@ -117,16 +116,8 @@ struct BasicClass {
         return *this;
     }
 
-    template <v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
-    inline BasicClass& Method(char const *name) {
-        FunctionTemplate()->PrototypeTemplate()->Set(
-            v8::String::New(name),
-            v8::FunctionTemplate::New(&singleton_t::template ForwardBase<P, Ptr>));
-        return *this;
-    }
-
     template <class U, template <class> class V>
-    BasicClass(BasicClass<P, U, V>& parent) {
+    BasicClass(BasicClass<U, V>& parent) {
         FunctionTemplate()->Inherit(parent.FunctionTemplate());
     };
     BasicClass() {};
@@ -134,13 +125,12 @@ struct BasicClass {
 
 // class with constructor
 // T = class
-// P = optional parent class
-template <class T, class P = Nothing>
-struct Class : BasicClass<T, P, ArgAllocator> {
-    typedef BasicClass<T, P, ArgAllocator> base;
+template <class T>
+struct Class : BasicClass<T, ArgAllocator> {
+    typedef BasicClass<T, ArgAllocator> base;
 
     template <class U, template <class> class V>
-    Class(BasicClass<P, U, V>& parent) : base(parent) {}
+    Class(BasicClass<U, V>& parent) : base(parent) {}
     Class() {}
 };
 

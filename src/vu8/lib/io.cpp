@@ -105,13 +105,13 @@ v8::Handle<v8::Value> Open() {
             .Method<&FileBase::Eof>("eof")
             ;
 
-    Class<FileWriter, FileBase> fileWriter(fileBase);
+    Class<FileWriter> fileWriter(fileBase);
     fileWriter.Method<&FileWriter::Open>("open")
               .Method<&FileWriter::Print>("print")
               .Method<&FileWriter::Println>("println")
               ;
 
-    Class<FileReader, FileBase> fileReader(fileBase);
+    Class<FileReader> fileReader(fileBase);
     fileReader.Method<&FileReader::Open>("open")
               .Method<&FileReader::GetLine>("getln")
               ;
