@@ -26,7 +26,7 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
     typedef ClassSingleton<T, Allocator> self;
     typedef v8::Handle<v8::Value> (T::*MethodCallback)(const v8::Arguments& args);
 
-    v8::Persistent<v8::FunctionTemplate> FunctionTemplate() {
+    v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
         return func_;
     }
 
@@ -34,10 +34,6 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
     static inline v8::Handle<v8::Value>
     ConstructorFunction(const v8::Arguments& args) {
         return self::Instance().WrapObject(args);
-    }
-
-    static inline v8::Handle<v8::Value> Constructor(const v8::Arguments& args) {
-        return v8::Undefined();
     }
 
     template <v8::Handle<v8::Value> (T::*Ptr)(const v8::Arguments&)>
@@ -69,8 +65,7 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
     v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
         T *wrap = Allocator::New(args);
-        v8::Local<v8::Object> localObj =
-            func_->GetFunction()->NewInstance();
+        v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
 
@@ -81,7 +76,7 @@ struct ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
 
     ClassSingleton()
       : func_(v8::Persistent<v8::FunctionTemplate>::New(
-              v8::FunctionTemplate::New(&self::Constructor)))
+                  v8::FunctionTemplate::New()))
     {
         func_->InstanceTemplate()->SetInternalFieldCount(1);
     }
@@ -110,7 +105,7 @@ struct BasicClass {
     inline singleton_t& Instance() { return singleton_t::Instance(); }
 
   public:
-    inline v8::Handle<v8::FunctionTemplate> FunctionTemplate() {
+    inline v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
         return Instance().FunctionTemplate();
     }
 
