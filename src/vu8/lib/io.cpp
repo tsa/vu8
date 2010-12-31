@@ -95,9 +95,7 @@ struct FileReader : FileBase {
     }
 };
 
-v8::Handle<v8::Value> Open() {
-    Module mod;
-
+static inline v8::Handle<v8::Value> Open() {
     BasicClass<FileBase> fileBase;
     fileBase.Method<&FileBase::Close>("close")
             .Method<&FileBase::Good>("good")
@@ -116,9 +114,9 @@ v8::Handle<v8::Value> Open() {
               .Method<&FileReader::GetLine>("getln")
               ;
 
-    mod("FileWriter", fileWriter);
-    mod("FileReader", fileReader);
-    return mod.NewInstance();
+    Module mod;
+    return mod("FileWriter", fileWriter)
+              ("FileReader", fileReader).NewInstance();
 }
 
 } } }

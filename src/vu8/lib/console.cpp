@@ -18,17 +18,16 @@ v8::Handle<v8::Value> Println(const v8::Arguments& args) {
     return v8::Undefined();
 }
 
-} } }
-
-extern "C" {
-
-using namespace tsa::vu8::console;
-using namespace tsa::vu8;
-
-v8::Handle<v8::Value> vu8_module_console() {
+static inline v8::Handle<v8::Value> Open() {
     Module mod;
     mod("println", &Println);
     return mod.NewInstance();
 }
 
+} } }
+
+extern "C" {
+    v8::Handle<v8::Value> vu8_module_console() {
+        return tsa::vu8::console::Open();
+    }
 }
