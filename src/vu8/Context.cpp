@@ -11,18 +11,20 @@
 namespace tsa { namespace vu8 {
 
 v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
+    v8::HandleScope scope;
     if (1 != args.Length())
-        return Throw("loadmodule: incorrect arguments");
+        return scope.Close(Throw("loadmodule: incorrect arguments"));
 
-    v8::HandleScope handle_scope;
     v8::String::Utf8Value str(args[0]);
     std::string modName = *str;
 
     v8::Handle<v8::Value> ctxtValue =
         args.Holder()->Get(v8::String::New("_vu8_context"));
 
-    if (ctxtValue.IsEmpty())
-        return Throw("loadmodule: context is set up incorrectly");
+    if (ctxtValue.IsEmpty()) {
+        return scope.Close(
+            Throw("loadmodule: context is set up incorrectly"));
+    }
 
     Context& context =
         *reinterpret_cast<Context *>(v8::External::Unwrap(ctxtValue));
@@ -31,22 +33,26 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     modules_t::iterator it = context.modules_.find(modName);
     // check if module is already loaded
     if (it != context.modules_.end())
-        return boost::get<1>(it->second);
+        return scope.Close(boost::get<1>(it->second));
 
     std::string modPath = context.libPath_;
     modPath.append("/libvu8_").append(modName).append(".so");
     void *dl = dlopen(modPath.c_str(), RTLD_LAZY);
 
-    if (! dl)
-        return Throw("loadmodule: could not find shared library");
+    if (! dl) {
+        return scope.Close(
+            Throw("loadmodule: could not find shared library"));
+    }
 
     // re-use modPath as entry name
     modPath = "vu8_module_";
     modPath.append(modName);
 
     void *sym = dlsym(dl, modPath.c_str());
-    if (! sym)
-        return Throw("loadmodule: initialisation function not found");
+    if (! sym) {
+        return scope.Close(
+            Throw("loadmodule: initialisation function not found"));
+    }
 
     // g++ 3 is broken and can only handle a C-style cast for this
 #if 0
@@ -61,7 +67,7 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
             modName, boost::make_tuple(
                 dl, v8::Persistent<v8::Value>::New(value))));
 
-    return boost::get<1>(ret.first->second);
+    return scope.Close(boost::get<1>(ret.first->second));
 }
 
 void Context::Init() {
