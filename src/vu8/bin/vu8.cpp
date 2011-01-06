@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 static inline std::string find_in_path(char const *search) {
     char const *path_env = std::getenv("PATH");
@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-} }
+}
 
 int main(int argc, char *argv[]) {
-    return tsa::vu8::main(argc, argv);
+    return vu8::main(argc, argv);
 }

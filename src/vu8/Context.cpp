@@ -8,7 +8,7 @@
 
 #include <dlfcn.h>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     v8::HandleScope scope;
@@ -120,4 +120,4 @@ Context::~Context() {
     }
 }
 
-} }
+}

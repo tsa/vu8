@@ -3,7 +3,7 @@
 
 #include <boost/mpl/vector.hpp>
 
-namespace tsa { namespace vu8 { namespace detail {
+namespace vu8 { namespace detail {
 
 namespace mpl = boost::mpl;
 
@@ -66,5 +66,5 @@ template <class C, class P, typename MemFunProto<C, P>::method_type Ptr>
 typename MemFun<C, P, Ptr>::method_type
 MemFun<C, P, Ptr>::method_pointer = Ptr;
 
-} } }
+} }
 #endif

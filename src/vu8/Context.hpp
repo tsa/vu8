@@ -8,7 +8,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/tuple/tuple.hpp>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 v8::Handle<v8::Value> LoadModule(const v8::Arguments& args);
 
@@ -37,5 +37,5 @@ struct Context {
     friend v8::Handle<v8::Value> LoadModule(const v8::Arguments& args);
 };
 
-} }
+}
 #endif

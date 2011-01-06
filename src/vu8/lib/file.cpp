@@ -7,7 +7,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace tsa { namespace vu8 { namespace file {
+namespace vu8 { namespace file {
 
 struct FileBase {
     bool IsOpen() { return stream_.is_open(); }
@@ -103,8 +103,8 @@ static inline v8::Handle<v8::Value> Open() {
               ("Reader", fileReader).NewInstance();
 }
 
-} } }
+} }
 
 extern "C" {
-    v8::Handle<v8::Value> vu8_module_file() { return tsa::vu8::file::Open(); }
+    v8::Handle<v8::Value> vu8_module_file() { return vu8::file::Open(); }
 }

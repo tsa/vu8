@@ -3,12 +3,12 @@
 
 #include <v8.h>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 static inline v8::Handle<v8::Primitive> Throw(char const *str) {
     v8::ThrowException(v8::String::New(str));
     return v8::Undefined();
 }
 
-} }
+}
 #endif

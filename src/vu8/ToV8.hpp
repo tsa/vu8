@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 typedef v8::Handle<v8::Value> ValueHandle;
 
@@ -37,5 +37,5 @@ static inline ValueHandle ToV8(bool const src) {
     return v8::Boolean::New(src);
 }
 
-} }
+}
 #endif

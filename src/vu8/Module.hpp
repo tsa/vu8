@@ -3,7 +3,7 @@
 
 #include <v8.h>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 template <class T> struct Class;
 
@@ -37,5 +37,5 @@ struct Module {
     v8::Local<v8::FunctionTemplate> func_;
 };
 
-} }
+}
 #endif

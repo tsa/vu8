@@ -4,13 +4,13 @@
 #include <boost/type_traits/remove_const.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-namespace tsa { namespace vu8 { namespace detail {
+namespace vu8 { namespace detail {
 
 template <class T>
 struct MakeArgStorage : boost::remove_const<
     typename boost::remove_reference<T>::type
 > {};
 
-} } }
+} }
 #endif
 

@@ -23,7 +23,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace tsa { namespace vu8 {
+namespace vu8 {
 
 namespace fu = boost::fusion;
 namespace mpl = boost::mpl;
@@ -222,5 +222,5 @@ struct Class : BasicClass<T, ArgAllocator> {
     Class() {}
 };
 
-} }
+}
 #endif

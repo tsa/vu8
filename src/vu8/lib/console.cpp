@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace tsa { namespace vu8 { namespace console {
+namespace vu8 { namespace console {
 
 v8::Handle<v8::Value> Println(const v8::Arguments& args) {
     bool first = true;
@@ -24,10 +24,10 @@ static inline v8::Handle<v8::Value> Open() {
     return mod.NewInstance();
 }
 
-} } }
+} }
 
 extern "C" {
     v8::Handle<v8::Value> vu8_module_console() {
-        return tsa::vu8::console::Open();
+        return vu8::console::Open();
     }
 }
