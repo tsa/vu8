@@ -74,7 +74,7 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
 void Context::Init() {
     if (IsEmpty()) {
         v8::HandleScope scope;
-        context_ = v8::Context::New(0, template_);
+        context_ = v8::Context::New();
         context_->Enter();
 
         Module mod;
@@ -108,8 +108,7 @@ void Context::RunFile(char const *filename) {
     script->Run();
 }
 
-Context::Context(std::string const& libPath)
-  : template_(v8::ObjectTemplate::New()), libPath_(libPath) {}
+Context::Context(std::string const& libPath) : libPath_(libPath) {}
 
 Context::~Context() {
     if (! IsEmpty()) {

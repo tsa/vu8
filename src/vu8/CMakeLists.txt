@@ -8,6 +8,8 @@ option(V8_DEBUG "compile v8 in debugging mode" off)
 option(V8_STATIC "compile static libv8" off)
 option(V8_DYNAMIC "compile dynamic libv8" on)
 
+set(VU8_PLUGIN_LIB_PATH "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "location of vu8 shared library plugins" )
+
 set(V8_LIB_STATIC ${CMAKE_CURRENT_BINARY_DIR}/v8/libv8${V8_SUFFIX}.a)
 set(V8_LIB_DYNAMIC ${CMAKE_CURRENT_BINARY_DIR}/v8/libv8${V8_SUFFIX}.so)
 set(V8_LINK pthread)
