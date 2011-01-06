@@ -1,10 +1,11 @@
-#ifndef TSA_VU8_SINGLETON_HPP
-#define TSA_VU8_SINGLETON_HPP
+#ifndef TSA_VU8_UTIL_SINGLETON_HPP
+#define TSA_VU8_UTIL_SINGLETON_HPP
 
-namespace tsa { namespace vu8 {
+namespace tsa { namespace vu8 { namespace util {
 
 template <class T>
 class Singleton {
+  protected:
     struct object_creator {
         object_creator() { Singleton<T>::Instance(); }
         inline void do_nothing() const {}
@@ -13,14 +14,12 @@ class Singleton {
 
     typedef T object_type;
 
-  public:
     static object_type& Instance() {
         static object_type obj;
         create_object.do_nothing();
         return obj;
     }
 
-  protected:
     Singleton() {}
 };
 
@@ -28,5 +27,5 @@ template <typename T>
 typename Singleton<T>::object_creator
 Singleton<T>::create_object;
 
-} }
+} } }
 #endif

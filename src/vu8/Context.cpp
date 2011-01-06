@@ -1,5 +1,4 @@
 #include <vu8/Context.hpp>
-#include <vu8/String.hpp>
 #include <vu8/Throw.hpp>
 
 #include <fstream>
@@ -19,7 +18,7 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
 
     v8::HandleScope handle_scope;
     v8::String::Utf8Value str(args[0]);
-    std::string modName = ToCString(str);
+    std::string modName = *str;
     // std::cout << "loading (" << modName << ")" << std::endl;
 
     v8::Handle<v8::Value> ctxtValue =
@@ -52,8 +51,13 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     if (! sym)
         return Throw("loadmodule: initialisation function not found");
 
+    // g++ 3 is broken and can only handle a C-style cast for this
+#if 0
     v8::Handle<v8::Value> value =
         (*reinterpret_cast<Context::ModuleLoadCallback>(sym))();
+#else
+    v8::Handle<v8::Value> value = ((Context::ModuleLoadCallback) sym)();
+#endif
 
     std::pair<modules_t::iterator, bool> ret =
         context.modules_.insert(modules_t::value_type(

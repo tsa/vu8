@@ -1,6 +1,7 @@
-.PHONY: default getv8 getscons buildscons clean cmake
+.PHONY: default getv8 buildv8 staticv8 dynamicv8 getscons buildscons clean cmake
 
-v8ver   := tags/2.3.8
+# v8ver   := tags/2.3.8
+v8ver   := tags/2.5.9.6
 # \ trunk branches/2.5 tags/2.5.9.6
 v8svn   := http://v8.googlecode.com/svn/${v8ver}
 
@@ -44,10 +45,13 @@ v8/${libname}.so: v8/SConstruct scons/bin/scons .status
 v8/${libname}.a: v8/SConstruct scons/bin/scons .status
 	cd v8 && CXX=`which g++` python2 ../scons/bin/scons ${SCONS_ARGS} library=static
 
+staticv8: v8/${libname}.a
+dynamicv8: v8/${libname}.so
+
 getscons: scons/build/setup.py
 buildscons: scons/bin/scons
 getv8: v8/SConstruct
-buildv8: v8/${libname}.so v8/${libname}.a
+buildv8: staticv8 dynamicv8
 
 clean:
 	rm -rf scons v8 obj

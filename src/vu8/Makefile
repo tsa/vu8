@@ -1,11 +1,13 @@
-.PHONY: default test
+.PHONY: default test clean
 
 BUILD_DIR := obj
 
 default:
 	@mkdir -p ${BUILD_DIR}
-	${MAKE} -C ${BUILD_DIR} -f ../mk/v8
 	cd ${BUILD_DIR} && cmake .. && ${MAKE}
 
 test:
 	@cd ${BUILD_DIR} && ctest --verbose
+
+clean:
+	${MAKE} -C ${BUILD_DIR} clean

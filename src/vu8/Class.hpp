@@ -1,14 +1,32 @@
 #ifndef TSA_VU8_CLASS_HPP
 #define TSA_VU8_CLASS_HPP
 
-#include <vu8/Singleton.hpp>
-#include <vu8/String.hpp>
+#include <vu8/Proto.hpp>
+#include <vu8/ToV8.hpp>
+#include <vu8/Throw.hpp>
+#include <vu8/util/Singleton.hpp>
+#include <vu8/util/RemoveConstReference.hpp>
 
-#include <v8.h>
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/adapted/mpl.hpp>
+#include <boost/fusion/include/at_c.hpp>
+#include <boost/fusion/include/invoke.hpp>
+#include <boost/fusion/include/begin.hpp>
+#include <boost/fusion/include/push_front.hpp>
+#include <boost/fusion/include/join.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/bind.hpp>
 
 #include <iostream>
+#include <stdexcept>
 
 namespace tsa { namespace vu8 {
+
+namespace fu = boost::fusion;
+namespace mpl = boost::mpl;
 
 template <class T>
 struct ArgAllocator {
@@ -24,39 +42,88 @@ template <class T, template <class> class Allocator = NoArgAllocator>
 struct BasicClass;
 
 template <class T, template <class> class Allocator>
-class ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
-    friend class BasicClass<T, Allocator>;
+class ClassSingleton : util::Singleton< ClassSingleton<T, Allocator> > {
 
     typedef ClassSingleton<T, Allocator> self;
-    typedef v8::Handle<v8::Value> (T::*MethodCallback)(const v8::Arguments& args);
+    typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
 
     v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
         return func_;
     }
 
   public:
-    static inline v8::Handle<v8::Value>
-    ConstructorFunction(const v8::Arguments& args) {
+    static inline ValueHandle ConstructorFunction(const v8::Arguments& args) {
         return self::Instance().WrapObject(args);
     }
 
   private:
-    template <v8::Handle<v8::Value> (T::*Ptr)(const v8::Arguments&)>
-    static inline v8::Handle<v8::Value> Forward(const v8::Arguments& args) {
-        return ForwardBase<T, Ptr>(args);
+    template <class P>
+    struct PassDirectIf : boost::is_same<
+        const v8::Arguments&,
+        typename mpl::front<typename P::arguments>::type> {};
+
+    // invoke passing javascript object argument directly
+    template <class P>
+    static inline typename boost::enable_if<
+        PassDirectIf<P>, typename P::return_type >::type
+    Invoke(T *obj, const v8::Arguments& args) {
+        return (obj->* P::method_pointer)(args);
     }
 
-    template <class P, v8::Handle<v8::Value> (P::*Ptr)(const v8::Arguments&)>
-    static inline v8::Handle<v8::Value> ForwardBase(const v8::Arguments& args) {
+    template <class P>
+    static inline typename boost::disable_if<
+        PassDirectIf<P>, typename P::return_type >::type
+    Invoke(T *obj, const v8::Arguments& args) {
+        typedef typename mpl::transform<
+            typename P::arguments,
+            util::RemoveConstReference<mpl::_1> >::type  arg_tl;
+
+        typedef typename mpl::push_front<arg_tl, T *&>::type mem_arg_tl;
+
+        typedef typename fu::result_of::as_vector<arg_tl>::type     arg_vec;
+        typedef typename fu::result_of::as_vector<mem_arg_tl>::type mem_arg_vec;
+
+        fu::vector<T *&> parent(obj);
+        mem_arg_vec cpp_args = fu::join(parent, arg_vec());
+
+        // TODO: iterate over arg_tl instantiating each cpp_args element
+        //       based on the index and args
+
+        return boost::fusion::invoke(P::method_pointer, cpp_args);
+    }
+
+    template <class P>
+    static inline typename boost::disable_if<
+        boost::is_same<void, typename P::return_type>, ValueHandle >::type
+    ForwardReturn(T *obj, const v8::Arguments& args) {
+        return ToV8(Invoke<P>(obj, args));
+    }
+
+    template <class P>
+    static inline typename boost::enable_if<
+        boost::is_same<void, typename P::return_type>, ValueHandle >::type
+    ForwardReturn(T *obj, const v8::Arguments& args) {
+        Invoke<P>(obj, args);
+        return v8::Undefined();
+    }
+
+    // every method is run inside a handle scope
+    template <class P>
+    static inline ValueHandle Forward(const v8::Arguments& args) {
         v8::HandleScope scope;
         v8::Local<v8::Object> self = args.Holder();
         v8::Local<v8::External> wrap =
             v8::Local<v8::External>::Cast(self->GetInternalField(0));
 
-        P& obj = *static_cast<P *>(wrap->Value());
-        return scope.Close((obj.*Ptr)(args));
+        // this will kill without zero-overhead exception handling
+        try {
+            return scope.Close(ForwardReturn<P>(
+                static_cast<T *>(wrap->Value()), args));
+        }
+        catch (std::runtime_error const& e) {
+            return Throw(e.what());
+        }
     }
-
 
     static inline void MadeWeak(v8::Persistent<v8::Value> object,
                                 void                     *parameter)
@@ -87,10 +154,10 @@ class ClassSingleton : Singleton< ClassSingleton<T, Allocator> > {
     }
 
     v8::Persistent<v8::FunctionTemplate> func_;
-    friend class Singleton<self>;
-};
 
-class Nothing {};
+    friend class util::Singleton<self>;
+    friend class BasicClass<T, Allocator>;
+};
 
 // basic class
 // T = class
@@ -111,12 +178,31 @@ struct BasicClass {
         return Instance().FunctionTemplate();
     }
 
-    template <v8::Handle<v8::Value> (T::*Ptr)(const v8::Arguments&)>
+    // method helper
+    template <class P>
     inline BasicClass& Method(char const *name) {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
-            v8::FunctionTemplate::New(&singleton_t::template Forward<Ptr>));
+            v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
         return *this;
+    }
+
+    // method with any prototype
+    template <class P, typename MemFunProto<T, P>::method_type Ptr>
+    inline BasicClass& Method(char const *name) {
+        return Method< MemFun<T, P, Ptr> >(name);
+    }
+
+    // passing v8::Arguments directly but modify return type
+    template <class R, R (T::*Ptr)(const v8::Arguments&)>
+    inline BasicClass& Method(char const *name) {
+        return Method<R(const v8::Arguments&), Ptr>(name);
+    }
+
+    // passing v8::Arguments and return ValueHandle directly
+    template <ValueHandle (T::*Ptr)(const v8::Arguments&)>
+    inline BasicClass& Method(char const *name) {
+        return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
     }
 
     template <class U, template <class> class V>
@@ -126,8 +212,7 @@ struct BasicClass {
     BasicClass() {};
 };
 
-// class with constructor
-// T = class
+// class with constructor from v8::Arguments
 template <class T>
 struct Class : BasicClass<T, ArgAllocator> {
     typedef BasicClass<T, ArgAllocator> base;

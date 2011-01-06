@@ -1,5 +1,4 @@
 #include <vu8/Module.hpp>
-#include <vu8/String.hpp>
 
 #include <iostream>
 
@@ -12,13 +11,14 @@ v8::Handle<v8::Value> Println(const v8::Arguments& args) {
         if (first) first = false;
         else std::cout << ' ';
         v8::String::Utf8Value str(args[i]);
-        std::cout << ToCString(str);
+        std::cout << *str;
     }
     std::cout << std::endl;
     return v8::Undefined();
 }
 
 static inline v8::Handle<v8::Value> Open() {
+    v8::HandleScope scope;
     Module mod;
     mod("println", &Println);
     return mod.NewInstance();

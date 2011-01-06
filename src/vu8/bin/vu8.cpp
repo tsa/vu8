@@ -111,14 +111,13 @@ int main(int argc, char *argv[]) {
         for (scripts_t::const_iterator it = scripts.begin();
              it != scripts.end(); ++it)
         { ctxt.RunFile(it->c_str()); }
-
-        v8::V8::Dispose();
     }
     catch (std::runtime_error const& e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
 
+    v8::V8::Dispose();
     return 0;
 }
 

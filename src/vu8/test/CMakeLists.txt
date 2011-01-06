@@ -3,5 +3,5 @@ macro(vu8_test _name _file)
 endmacro()
 
 vu8_test(LoadModule loadmodule.js)
-vu8_test(Io io.js)
+vu8_test(File file.js)
 
