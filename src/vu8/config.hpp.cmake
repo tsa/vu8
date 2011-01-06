@@ -1,0 +1,6 @@
+#ifndef VU8_CONFIG_HPP
+#define VU8_CONFIG_HPP
+
+#define VU8_PLUGIN_LIB_PATH "@VU8_PLUGIN_LIB_PATH@"
+
+#endif

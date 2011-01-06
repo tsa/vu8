@@ -3,6 +3,7 @@
 
 #include <vu8/ToV8.hpp>
 #include <vu8/Throw.hpp>
+#include <vu8/Factory.hpp>
 #include <vu8/detail/Proto.hpp>
 #include <vu8/detail/Singleton.hpp>
 #include <vu8/detail/MakeArgStorage.hpp>
@@ -29,22 +30,22 @@ namespace fu = boost::fusion;
 namespace mpl = boost::mpl;
 
 template <class T>
-struct ArgAllocator {
+struct ArgFactory {
     static inline T *New(const v8::Arguments& args) { return new T(args); }
 };
 
 template <class T>
-struct NoArgAllocator {
+struct NoArgFactory {
     static inline T *New(const v8::Arguments& args) { return new T(); }
 };
 
-template <class T, template <class> class Allocator = NoArgAllocator>
+template <class T, template <class> class Factory = NoArgFactory>
 struct BasicClass;
 
-template <class T, template <class> class Allocator>
-class ClassSingleton : detail::Singleton< ClassSingleton<T, Allocator> > {
+template <class T, template <class> class Factory>
+class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
 
-    typedef ClassSingleton<T, Allocator> self;
+    typedef ClassSingleton<T, Factory> self;
     typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
 
     v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
@@ -136,7 +137,7 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Allocator> > {
 
     v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
-        T *wrap = Allocator<T>::New(args);
+        T *wrap = Factory<T>::New(args);
         v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
@@ -156,41 +157,37 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Allocator> > {
     v8::Persistent<v8::FunctionTemplate> func_;
 
     friend class detail::Singleton<self>;
-    friend class BasicClass<T, Allocator>;
+    friend class BasicClass<T, Factory>;
 };
 
 // basic class
 // T = class
 // P = optional parent class
-// Allocator = static wrapper object memory allocator, by default
-//             supports zero-argument constructor
-template <class T, template <class> class Allocator>
+// Factory = factory for allocating c++ object
+//           by default BasicClass uses zero-argument constructor
+template <class T, template <class> class Factory>
 struct BasicClass {
-    typedef ClassSingleton<T, Allocator>  singleton_t;
+    typedef ClassSingleton<T, Factory>  singleton_t;
 
   private:
     typedef typename singleton_t::MethodCallback  MethodCallback;
 
     inline singleton_t& Instance() { return singleton_t::Instance(); }
 
-  public:
-    inline v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
-        return Instance().FunctionTemplate();
-    }
-
     // method helper
     template <class P>
-    inline BasicClass& Set(char const *name) {
+    inline BasicClass& Method(char const *name) {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
             v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
         return *this;
     }
 
+  public:
     // method with any prototype
     template <class P, typename detail::MemFunProto<T, P>::method_type Ptr>
     inline BasicClass& Set(char const *name) {
-        return Set< detail::MemFun<T, P, Ptr> >(name);
+        return Method< detail::MemFun<T, P, Ptr> >(name);
     }
 
     // passing v8::Arguments directly but modify return type
@@ -202,7 +199,11 @@ struct BasicClass {
     // passing v8::Arguments and return ValueHandle directly
     template <ValueHandle (T::*Ptr)(const v8::Arguments&)>
     inline BasicClass& Set(char const *name) {
-        return Set<ValueHandle(const v8::Arguments&), Ptr>(name);
+        return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
+    }
+
+    inline v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
+        return Instance().FunctionTemplate();
     }
 
     template <class U, template <class> class V>
@@ -214,8 +215,8 @@ struct BasicClass {
 
 // class with constructor from v8::Arguments
 template <class T>
-struct Class : BasicClass<T, ArgAllocator> {
-    typedef BasicClass<T, ArgAllocator> base;
+struct Class : BasicClass<T, ArgFactory> {
+    typedef BasicClass<T, ArgFactory> base;
 
     template <class U, template <class> class V>
     Class(BasicClass<U, V>& parent) : base(parent) {}

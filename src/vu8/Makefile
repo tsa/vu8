@@ -1,4 +1,4 @@
-.PHONY: default test clean
+.PHONY: default test clean factory
 
 BUILD_DIR := obj
 
@@ -11,3 +11,6 @@ test:
 
 clean:
 	${MAKE} -C ${BUILD_DIR} clean
+
+factory:
+	g++ -I/opt/tsa-env/64/include -I.. -E -P Factory.hpp

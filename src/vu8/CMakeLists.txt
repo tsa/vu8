@@ -35,7 +35,9 @@ else()
     set(V8_LIBS ${V8_LIB_DYNAMIC})
 endif()
 
-include_directories(${V8_INCLUDE_DIR} ..)
+set (VU8_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}/include)
+configure_file(config.hpp.cmake ${VU8_INCLUDE_PATH}/vu8/config.hpp)
+include_directories(${V8_INCLUDE_DIR} .. ${VU8_INCLUDE_PATH})
 
 add_custom_command(
     OUTPUT ${V8_LIBS}

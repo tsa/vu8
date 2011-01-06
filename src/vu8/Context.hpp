@@ -1,6 +1,8 @@
 #ifndef TSA_VU8_CONTEXT_HPP
 #define TSA_VU8_CONTEXT_HPP
 
+#include <vu8/config.hpp>
+
 #include <v8.h>
 
 #include <string>
@@ -35,7 +37,7 @@ struct Context {
 
   public:
     // TODO: default libPath to cmake option
-    Context(std::string const& libPath);
+    Context(std::string const& libPath = VU8_PLUGIN_LIB_PATH);
     ~Context();
 };
 
