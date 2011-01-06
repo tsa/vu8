@@ -6,6 +6,9 @@
 #       include <boost/preprocessor/punctuation/comma_if.hpp>
 #       include <boost/preprocessor/iteration/iterate.hpp>
 
+#       include <boost/mpl/vector.hpp>
+
+
 #       ifndef VU8_FACTORY_MAX_SIZE
 #         define VU8_FACTORY_MAX_SIZE 6  // default maximum size is 6
 #       endif
@@ -18,7 +21,7 @@ struct none {};
 
 // primary template
 
-template <BOOST_PP_ENUM(VU8_FACTORY_MAX_SIZE, VU8_FACTORY_header, ~)>
+template <class C, BOOST_PP_ENUM(VU8_FACTORY_MAX_SIZE, VU8_FACTORY_header, ~)>
 struct Factory;
 
 }
@@ -36,13 +39,15 @@ struct Factory;
 namespace vu8 {
 
 // specialization pattern
-template <BOOST_PP_ENUM_PARAMS(n, class T)>
+template <class C BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM_PARAMS(n, class T)>
 struct Factory<
+    C,
     BOOST_PP_ENUM_PARAMS(n,T)
     BOOST_PP_COMMA_IF(n)
     BOOST_PP_ENUM(BOOST_PP_SUB(VU8_FACTORY_MAX_SIZE,n), VU8_FACTORY_print, none)
 >
 {
+    typedef boost::mpl::vector<BOOST_PP_ENUM_PARAMS(n,T)> arguments;
 };
 
 }
