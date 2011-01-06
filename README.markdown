@@ -42,7 +42,9 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
                   .Method<void, &FileWriter::Println>("println")
                   ;
         // Print takes v8::Arguments directly so only the return type
-        // needs to be specified rather than the signature
+        // needs to be specified rather than the signature. Arguments and
+        // return types are converted from C++ to JS types and back for the
+        // user automatically based on the template method signatures.
 
         vu8::Class<FileReader> fileReader(fileBase);
         // ... more code
