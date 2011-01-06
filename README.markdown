@@ -85,7 +85,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     find(Vu8)
     set(CMAKE_MODULE_PATH ${VU8_MODULE_PATH})
     include(Vu8)
-    vu8_plugin(console "file1.cpp;file2.cpp")
+    vu8_plugin(module_name "source_file1.cpp;source_file2.cpp")
     # the above will add the make target and cause the module to be
     # installed into the vu8 module path
 
