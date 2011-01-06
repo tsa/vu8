@@ -49,8 +49,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
         // user automatically based on the template method signatures.
 
         vu8::Class<FileReader> fileReader(fileBase);
-        // ... more code
-
+        // code to setup fileReader omitted for brevity
 
         // Create a module to add the classes to and return a new
         // instance of the module to be embedded into the v8 context
@@ -112,3 +111,11 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     else console.println("could not open `file'")
 
     console.println("exit")
+
+## Using vu8bin to load JavaScript files
+    % vu8bin file1.js file2.js  # both files run with the same context
+
+## Dependencies
+    * boost 1.37+
+    * cmake 2.4+
+    * libv8.so (it is checked out and built alongside vu8 by the vu8 build system if it is not already installed)
