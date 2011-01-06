@@ -95,3 +95,15 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     // script at location jsFile can now use loadmodule. An application
     // that uses vu8::Context must link against libvu8.a
     ctxt.RunFile(jsFile);
+
+## Using loadmodule from JavaScript
+    // Load the file module from the class binding example and the
+    // console module.
+    var file    = loadmodule('file'),
+        console = loadmodule('console')
+
+    var writer = new file.Writer("file")
+    writer.println("some text")
+    writer.close()
+
+    console.println("exit")
