@@ -31,17 +31,17 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     static inline v8::Handle<v8::Value> Open() {
         v8::HandleScope scope;
         vu8::BasicClass<FileBase> fileBase;
-        fileBase.Method<void (), &FileBase::Close>("close")
-                .Method<bool (), &FileBase::Good>("good")
-                .Method<bool (), &FileBase::IsOpen>("is_open")
-                .Method<bool (), &FileBase::Eof>("eof")
+        fileBase.Set<void (), &FileBase::Close>("close")
+                .Set<bool (), &FileBase::Good>("good")
+                .Set<bool (), &FileBase::IsOpen>("is_open")
+                .Set<bool (), &FileBase::Eof>("eof")
                 ;
 
         // FileWriter inherits from FileBase
         vu8::Class<FileWriter> fileWriter(fileBase);
-        fileWriter.Method<bool (char const *), &FileWriter::Open>("open")
-                  .Method<void, &FileWriter::Print>("print")
-                  .Method<void, &FileWriter::Println>("println")
+        fileWriter.Set<bool (char const *), &FileWriter::Open>("open")
+                  .Set<void, &FileWriter::Print>("print")
+                  .Set<void, &FileWriter::Println>("println")
                   ;
         // Print/Println take v8::Arguments directly so only the return type
         // needs to be specified rather than the signature. Arguments and

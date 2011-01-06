@@ -180,7 +180,7 @@ struct BasicClass {
 
     // method helper
     template <class P>
-    inline BasicClass& Method(char const *name) {
+    inline BasicClass& Set(char const *name) {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
             v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
@@ -189,20 +189,20 @@ struct BasicClass {
 
     // method with any prototype
     template <class P, typename detail::MemFunProto<T, P>::method_type Ptr>
-    inline BasicClass& Method(char const *name) {
-        return Method< detail::MemFun<T, P, Ptr> >(name);
+    inline BasicClass& Set(char const *name) {
+        return Set< detail::MemFun<T, P, Ptr> >(name);
     }
 
     // passing v8::Arguments directly but modify return type
     template <class R, R (T::*Ptr)(const v8::Arguments&)>
-    inline BasicClass& Method(char const *name) {
-        return Method<R(const v8::Arguments&), Ptr>(name);
+    inline BasicClass& Set(char const *name) {
+        return Set<R(const v8::Arguments&), Ptr>(name);
     }
 
     // passing v8::Arguments and return ValueHandle directly
     template <ValueHandle (T::*Ptr)(const v8::Arguments&)>
-    inline BasicClass& Method(char const *name) {
-        return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
+    inline BasicClass& Set(char const *name) {
+        return Set<ValueHandle(const v8::Arguments&), Ptr>(name);
     }
 
     template <class U, template <class> class V>

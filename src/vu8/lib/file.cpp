@@ -81,21 +81,21 @@ struct FileReader : FileBase {
 static inline v8::Handle<v8::Value> Open() {
     v8::HandleScope scope;
     BasicClass<FileBase> fileBase;
-    fileBase.Method<void (), &FileBase::Close>("close")
-            .Method<bool (), &FileBase::Good>("good")
-            .Method<bool (), &FileBase::IsOpen>("is_open")
-            .Method<bool (), &FileBase::Eof>("eof")
+    fileBase.Set<void (), &FileBase::Close>("close")
+            .Set<bool (), &FileBase::Good>("good")
+            .Set<bool (), &FileBase::IsOpen>("is_open")
+            .Set<bool (), &FileBase::Eof>("eof")
             ;
 
     Class<FileWriter> fileWriter(fileBase);
-    fileWriter.Method<bool, &FileWriter::Open>("open")
-              .Method<void, &FileWriter::Print>("print")
-              .Method<void, &FileWriter::Println>("println")
+    fileWriter.Set<bool, &FileWriter::Open>("open")
+              .Set<void, &FileWriter::Print>("print")
+              .Set<void, &FileWriter::Println>("println")
               ;
 
     Class<FileReader> fileReader(fileBase);
-    fileReader.Method<bool(char const *), &FileReader::Open>("open")
-              .Method<v8::Handle<v8::Value>(), &FileReader::GetLine>("getln")
+    fileReader.Set<bool(char const *), &FileReader::Open>("open")
+              .Set<v8::Handle<v8::Value>(), &FileReader::GetLine>("getln")
               ;
 
     Module mod;
