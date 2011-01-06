@@ -6,6 +6,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 
 * libvu8.a - a static library to add "loadmodule" to the v8 javascript context. loadmodule is a system for loading plugins from shared libraries.
 * v8 cmake - cmake modules to make it easy to build modules for use with loadmodule. It is recommended that modules use the vu8 meta-programming library to bind C++ to JavaScript but this is not mandatory.
+* vu8bin - A binary for running JavaScript files in a context which has vu8 module loading functions provided.
 
 ## vu8 class binding example
     struct FileBase {
@@ -21,6 +22,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     struct FileWriter : FileBase {
         bool Open(char const *str) { ... }
         void Print(const v8::Arguments& args) { ... }
+        void Println(const v8::Arguments& args) { ... }
         FileWriter(const v8::Arguments& args) { ... }
     };
 
@@ -41,7 +43,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
                   .Method<void, &FileWriter::Print>("print")
                   .Method<void, &FileWriter::Println>("println")
                   ;
-        // Print takes v8::Arguments directly so only the return type
+        // Print/Println take v8::Arguments directly so only the return type
         // needs to be specified rather than the signature. Arguments and
         // return types are converted from C++ to JS types and back for the
         // user automatically based on the template method signatures.
