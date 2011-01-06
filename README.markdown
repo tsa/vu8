@@ -103,7 +103,10 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
         console = loadmodule('console')
 
     var writer = new file.Writer("file")
-    writer.println("some text")
-    writer.close()
+    if (writer.is_open()) {
+        writer.println("some text")
+        writer.close()
+    }
+    else console.println("could not open `file'")
 
     console.println("exit")
