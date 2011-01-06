@@ -1,7 +1,7 @@
 #ifndef TSA_VU8_UTIL_SINGLETON_HPP
 #define TSA_VU8_UTIL_SINGLETON_HPP
 
-namespace tsa { namespace vu8 { namespace util {
+namespace tsa { namespace vu8 { namespace detail {
 
 template <class T>
 class Singleton {

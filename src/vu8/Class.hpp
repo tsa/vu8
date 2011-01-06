@@ -1,11 +1,11 @@
 #ifndef TSA_VU8_CLASS_HPP
 #define TSA_VU8_CLASS_HPP
 
-#include <vu8/Proto.hpp>
 #include <vu8/ToV8.hpp>
 #include <vu8/Throw.hpp>
-#include <vu8/util/Singleton.hpp>
-#include <vu8/util/RemoveConstReference.hpp>
+#include <vu8/detail/Proto.hpp>
+#include <vu8/detail/Singleton.hpp>
+#include <vu8/detail/MakeArgStorage.hpp>
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -42,7 +42,7 @@ template <class T, template <class> class Allocator = NoArgAllocator>
 struct BasicClass;
 
 template <class T, template <class> class Allocator>
-class ClassSingleton : util::Singleton< ClassSingleton<T, Allocator> > {
+class ClassSingleton : detail::Singleton< ClassSingleton<T, Allocator> > {
 
     typedef ClassSingleton<T, Allocator> self;
     typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
@@ -76,7 +76,7 @@ class ClassSingleton : util::Singleton< ClassSingleton<T, Allocator> > {
     Invoke(T *obj, const v8::Arguments& args) {
         typedef typename mpl::transform<
             typename P::arguments,
-            util::RemoveConstReference<mpl::_1> >::type  arg_tl;
+            detail::MakeArgStorage<mpl::_1> >::type  arg_tl;
 
         typedef typename mpl::push_front<arg_tl, T *&>::type mem_arg_tl;
 
@@ -155,7 +155,7 @@ class ClassSingleton : util::Singleton< ClassSingleton<T, Allocator> > {
 
     v8::Persistent<v8::FunctionTemplate> func_;
 
-    friend class util::Singleton<self>;
+    friend class detail::Singleton<self>;
     friend class BasicClass<T, Allocator>;
 };
 
@@ -188,9 +188,9 @@ struct BasicClass {
     }
 
     // method with any prototype
-    template <class P, typename MemFunProto<T, P>::method_type Ptr>
+    template <class P, typename detail::MemFunProto<T, P>::method_type Ptr>
     inline BasicClass& Method(char const *name) {
-        return Method< MemFun<T, P, Ptr> >(name);
+        return Method< detail::MemFun<T, P, Ptr> >(name);
     }
 
     // passing v8::Arguments directly but modify return type
