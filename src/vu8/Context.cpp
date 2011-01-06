@@ -11,15 +11,12 @@
 namespace tsa { namespace vu8 {
 
 v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
-    // std::cout << "brianny\n";
     if (1 != args.Length())
         return Throw("loadmodule: incorrect arguments");
-    // std::cout << "brion\n";
 
     v8::HandleScope handle_scope;
     v8::String::Utf8Value str(args[0]);
     std::string modName = *str;
-    // std::cout << "loading (" << modName << ")" << std::endl;
 
     v8::Handle<v8::Value> ctxtValue =
         args.Holder()->Get(v8::String::New("_vu8_context"));
