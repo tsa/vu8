@@ -1,5 +1,5 @@
-var file = loadmodule('file'),
-    console = loadmodule('console')
+var file    = vu8.load('file'),
+    console = vu8.load('console')
 
 var write1 = new file.Writer()
 var write2 = new file.Writer("bunko")

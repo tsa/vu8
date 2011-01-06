@@ -1,5 +1,6 @@
 #include <vu8/Context.hpp>
 #include <vu8/Throw.hpp>
+#include <vu8/Module.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -19,9 +20,9 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     std::string modName = *str;
 
     v8::Handle<v8::Value> ctxtValue =
-        args.Holder()->Get(v8::String::New("_vu8_context"));
+        args.Holder()->Get(v8::String::New("context"));
 
-    if (ctxtValue.IsEmpty()) {
+    if (ctxtValue.IsEmpty() || ! ctxtValue->IsExternal()) {
         return scope.Close(
             Throw("loadmodule: context is set up incorrectly"));
     }
@@ -72,12 +73,16 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
 
 void Context::Init() {
     if (IsEmpty()) {
-        template_->Set(v8::String::New("loadmodule"),
-                       v8::FunctionTemplate::New(&LoadModule));
-        template_->Set(v8::String::New("_vu8_context"), v8::External::New(this));
-
+        v8::HandleScope scope;
         context_ = v8::Context::New(0, template_);
         context_->Enter();
+
+        Module mod;
+        mod("load", &LoadModule)
+           ("context", this)
+           ;
+
+        context_->Global()->Set(v8::String::New("vu8"), mod.NewInstance());
     }
 }
 

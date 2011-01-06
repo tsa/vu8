@@ -25,6 +25,12 @@ struct Module {
         return *this;
     }
 
+    template <class T>
+    Module& operator()(char const *name, T *t) {
+        obj_->Set(v8::String::New(name), v8::External::New(t));
+        return *this;
+    }
+
     // this is a local handle so make it persistent if needs be
     v8::Local<v8::Object> NewInstance() {
         return obj_->NewInstance();

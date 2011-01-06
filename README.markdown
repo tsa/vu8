@@ -4,8 +4,8 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 
 ## vu8 also provides
 
-* libvu8.a - a static library to add "loadmodule" to the v8 javascript context. loadmodule is a system for loading plugins from shared libraries.
-* v8 cmake - cmake modules to make it easy to build modules for use with loadmodule. It is recommended that modules use the vu8 meta-programming library to bind C++ to JavaScript but this is not mandatory.
+* libvu8.a - a static library to add "vu8.load" to the v8 javascript context. "vu8.load" is a system for loading plugins from shared libraries.
+* v8 cmake - cmake modules to make it easy to build modules for use with "vu8.load". It is recommended that modules use the vu8 meta-programming library to bind C++ to JavaScript but this is not mandatory.
 * vu8bin - A binary for running JavaScript files in a context which has vu8 module loading functions provided.
 
 ## vu8 class binding example
@@ -90,18 +90,18 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     # the above will add the make target and cause the module to be
     # installed into the vu8 module path
 
-## Creating a v8 Context capable of using loadmodule
+## Creating a v8 Context capable of using "vu8.load"
     #include <vu8/Context.hpp>
     vu8::Context ctxt;
-    // script at location jsFile can now use loadmodule. An application
+    // script at location jsFile can now use "vu8.load". An application
     // that uses vu8::Context must link against libvu8.a
     ctxt.RunFile(jsFile);
 
-## Using loadmodule from JavaScript
+## Using "vu8.load" from JavaScript
     // Load the file module from the class binding example and the
     // console module.
-    var file    = loadmodule('file'),
-        console = loadmodule('console')
+    var file    = vu8.load('file'),
+        console = vu8.load('console')
 
     var writer = new file.Writer("file")
     if (writer.is_open()) {
