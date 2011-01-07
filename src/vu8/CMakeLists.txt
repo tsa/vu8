@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 2.4)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 project(vu8)
+
+if(COMMAND cmake_policy)
+    cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
 enable_testing()
 
 option(V8_DEBUG "compile v8 in debugging mode" off)
