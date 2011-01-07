@@ -4,8 +4,13 @@ O := obj
 PP_ARGS := -I/opt/tsa-env/64/include -I.. -I${O}/include -E -P
 
 default:
-	@mkdir -p ${O}
-	cd ${O} && cmake .. && ${MAKE}
+	@if [ -d ${O} ] ; then \
+		make -C ${O}; \
+	else \
+		rm -rf ${O}; \
+		mkdir -p ${O}; \
+		cd ${O} && cmake .. && ${MAKE}; \
+	fi
 
 test:
 	@cd ${O} && ctest --verbose
