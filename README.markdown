@@ -9,6 +9,9 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 * vu8bin - A binary for running JavaScript files in a context which has vu8 module loading functions provided.
 
 ## vu8 class binding example
+    #include <vu8/Module.hpp>
+    #include <vu8/Class.hpp>
+
     struct FileBase {
         bool IsOpen() { return stream_.is_open(); }
         bool Good()   { return stream_.good(); }
@@ -20,13 +23,20 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     };
 
     struct FileWriter : FileBase {
-        bool Open(char const *str) { ... }
+        bool Open(const std::string& file) { ... }
         void Print(const v8::Arguments& args) { ... }
         void Println(const v8::Arguments& args) { ... }
         FileWriter(const v8::Arguments& args) { ... }
     };
 
-    struct FileReader : FileBase { ...  };
+    struct FileReader : FileBase {
+        FileReader(const std::string& file) { ... }
+        bool Open(char const *path) { ... }
+    };
+
+    bool Rename(char const *src, char const *dest) {
+        return ! std::rename(src, dest);
+    }
 
     static inline v8::Handle<v8::Value> Open() {
         v8::HandleScope scope;
@@ -38,8 +48,10 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
                 ;
 
         // FileWriter inherits from FileBase
-        vu8::Class<FileWriter> fileWriter(fileBase);
-        fileWriter.Set<bool (char const *), &FileWriter::Open>("open")
+        // Second template argument is a factory.. this one passes the
+        // v8::Arguments directly to FileWriter's constructor
+        vu8::Class<FileWriter, V8ArgFactory<FileWriter> > fileWriter(fileBase);
+        fileWriter.Set<bool (const std::string&), &FileWriter::Open>("open")
                   .Set<void, &FileWriter::Print>("print")
                   .Set<void, &FileWriter::Println>("println")
                   ;
@@ -48,29 +60,39 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
         // return types are converted from C++ to JS types and back for the
         // user automatically based on the template method signatures.
 
-        vu8::Class<FileReader> fileReader(fileBase);
-        // code to setup fileReader omitted for brevity
+        // This factory calls FileReader's single argument constructor. It
+        // converts v8::Arguments to the appropriate c++ arguments.
+        vu8::Class<
+            FileReader, Factory<FileReader, std::string const&>
+        > fileReader(fileBase);
 
-        // Create a module to add the classes to and return a new
-        // instance of the module to be embedded into the v8 context
+        fileReader.Set<bool (char const *), &FileReader::Open>("open");
+        // Can convert JS arguments to std::string/char const * amonst other types
+        // Code to setup other FileReader methods omitted for brevity
+
+        // Create a module to add classes and functions to and return a
+        // new instance of the module to be embedded into the v8 context
         vu8::Module mod;
         return mod("Writer", fileWriter)
-                  ("Reader", fileReader).NewInstance();
+                  ("Reader", fileReader)
+                  .Set<bool(char const *, char const *), &Rename>("rename")
+                  .NewInstance();
     }
 
 ## vu8 module example
     #include <vu8/Module.hpp>
-    #include <iostream>
 
     namespace vu8 { namespace console {
 
     v8::Handle<v8::Value> Println(const v8::Arguments& args) { ... }
+    void Flush() { std::cout.flush(); }
 
     static inline v8::Handle<v8::Value> Open() {
         v8::HandleScope scope;
         Module mod;
-        mod("println", &Println);
-        return mod.NewInstance();
+        return mod("println", &Println)
+                  .Set<void(), &Flush>("flush")
+                  .NewInstance();
     }
 
     } }
@@ -92,6 +114,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 
 ## Creating a v8 Context capable of using "vu8.load"
     #include <vu8/Context.hpp>
+
     vu8::Context ctxt;
     // script at location jsFile can now use "vu8.load". An application
     // that uses vu8::Context must link against libvu8.a
@@ -107,6 +130,8 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     if (writer.is_open()) {
         writer.println("some text")
         writer.close()
+        if (! file.rename("file", "newfile"))
+            console.println("could not rename file")
     }
     else console.println("could not open `file'")
 
@@ -119,3 +144,8 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     * boost 1.37+
     * cmake 2.4+
     * libv8.so (it is checked out and built alongside vu8 by the vu8 build system if it is not already installed)
+
+## TODO
+    * Support translating optional arguments.
+    * v8::Object -> boost::unordered_set translation.
+    * Node/CommonJS packages

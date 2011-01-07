@@ -1,16 +1,20 @@
-.PHONY: default test clean factory
+.PHONY: default test clean factory proto
 
-BUILD_DIR := obj
+O := obj
+PP_ARGS := -I/opt/tsa-env/64/include -I.. -I${O}/include -E -P
 
 default:
-	@mkdir -p ${BUILD_DIR}
-	cd ${BUILD_DIR} && cmake .. && ${MAKE}
+	@mkdir -p ${O}
+	cd ${O} && cmake .. && ${MAKE}
 
 test:
-	@cd ${BUILD_DIR} && ctest --verbose
+	@cd ${O} && ctest --verbose
 
 clean:
-	${MAKE} -C ${BUILD_DIR} clean
+	${MAKE} -C ${O} clean
 
 factory:
-	g++ -I/opt/tsa-env/64/include -I.. -E -P Factory.hpp
+	g++ ${PP_ARGS} Factory.hpp
+
+proto:
+	g++ ${PP_ARGS} detail/Proto.hpp

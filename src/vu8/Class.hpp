@@ -2,24 +2,20 @@
 #define TSA_VU8_CLASS_HPP
 
 #include <vu8/ToV8.hpp>
+#include <vu8/FromV8.hpp>
 #include <vu8/Throw.hpp>
 #include <vu8/Factory.hpp>
 #include <vu8/detail/Proto.hpp>
 #include <vu8/detail/Singleton.hpp>
 #include <vu8/detail/MakeArgStorage.hpp>
+#include <vu8/detail/FromV8Arguments.hpp>
+#include <vu8/detail/Class.hpp>
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_same.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/invoke.hpp>
-#include <boost/fusion/include/begin.hpp>
 #include <boost/fusion/include/push_front.hpp>
 #include <boost/fusion/include/join.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/front.hpp>
-#include <boost/bind.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -29,20 +25,10 @@ namespace vu8 {
 namespace fu = boost::fusion;
 namespace mpl = boost::mpl;
 
-template <class T>
-struct ArgFactory {
-    static inline T *New(const v8::Arguments& args) { return new T(args); }
-};
+template <class T, class Factory = Factory<T> >
+struct Class;
 
-template <class T>
-struct NoArgFactory {
-    static inline T *New(const v8::Arguments& args) { return new T(); }
-};
-
-template <class T, template <class> class Factory = NoArgFactory>
-struct BasicClass;
-
-template <class T, template <class> class Factory>
+template <class T, class Factory>
 class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
 
     typedef ClassSingleton<T, Factory> self;
@@ -58,26 +44,21 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
     }
 
   private:
-    template <class P>
-    struct PassDirectIf : boost::is_same<
-        const v8::Arguments&,
-        typename mpl::front<typename P::arguments>::type> {};
 
     // invoke passing javascript object argument directly
     template <class P>
     static inline typename boost::enable_if<
-        PassDirectIf<P>, typename P::return_type >::type
+        detail::PassDirectIf<P>, typename P::return_type >::type
     Invoke(T *obj, const v8::Arguments& args) {
         return (obj->* P::method_pointer)(args);
     }
 
     template <class P>
     static inline typename boost::disable_if<
-        PassDirectIf<P>, typename P::return_type >::type
+        detail::PassDirectIf<P>, typename P::return_type >::type
     Invoke(T *obj, const v8::Arguments& args) {
-        typedef typename mpl::transform<
-            typename P::arguments,
-            detail::MakeArgStorage<mpl::_1> >::type  arg_tl;
+        typedef typename
+            detail::MakeArgStorage<typename P::arguments>::type arg_tl;
 
         typedef typename mpl::push_front<arg_tl, T *&>::type mem_arg_tl;
 
@@ -87,8 +68,7 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
         fu::vector<T *&> parent(obj);
         mem_arg_vec cpp_args = fu::join(parent, arg_vec());
 
-        // TODO: iterate over arg_tl instantiating each cpp_args element
-        //       based on the index and args
+        detail::FromV8Arguments<1>(cpp_args, args);
 
         return boost::fusion::invoke(P::method_pointer, cpp_args);
     }
@@ -137,7 +117,7 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
 
     v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
-        T *wrap = Factory<T>::New(args);
+        T *wrap = Factory::New(args);
         v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
@@ -157,16 +137,20 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
     v8::Persistent<v8::FunctionTemplate> func_;
 
     friend class detail::Singleton<self>;
-    friend class BasicClass<T, Factory>;
+    friend class Class<T, Factory>;
 };
 
-// basic class
+// Factory that calls C++ constructor with v8::Arguments directly
+template <class T>
+struct V8ArgFactory
+  : detail::ArgFactory< Factory<T, const v8::Arguments& > > {};
+
+// Interface for registering C++ classes with v8
 // T = class
-// P = optional parent class
 // Factory = factory for allocating c++ object
-//           by default BasicClass uses zero-argument constructor
-template <class T, template <class> class Factory>
-struct BasicClass {
+//           by default Class uses zero-argument constructor
+template <class T, class Factory>
+struct Class {
     typedef ClassSingleton<T, Factory>  singleton_t;
 
   private:
@@ -176,7 +160,7 @@ struct BasicClass {
 
     // method helper
     template <class P>
-    inline BasicClass& Method(char const *name) {
+    inline Class& Method(char const *name) {
         FunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
             v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
@@ -186,19 +170,19 @@ struct BasicClass {
   public:
     // method with any prototype
     template <class P, typename detail::MemFunProto<T, P>::method_type Ptr>
-    inline BasicClass& Set(char const *name) {
+    inline Class& Set(char const *name) {
         return Method< detail::MemFun<T, P, Ptr> >(name);
     }
 
     // passing v8::Arguments directly but modify return type
     template <class R, R (T::*Ptr)(const v8::Arguments&)>
-    inline BasicClass& Set(char const *name) {
+    inline Class& Set(char const *name) {
         return Set<R(const v8::Arguments&), Ptr>(name);
     }
 
     // passing v8::Arguments and return ValueHandle directly
     template <ValueHandle (T::*Ptr)(const v8::Arguments&)>
-    inline BasicClass& Set(char const *name) {
+    inline Class& Set(char const *name) {
         return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
     }
 
@@ -206,20 +190,10 @@ struct BasicClass {
         return Instance().FunctionTemplate();
     }
 
-    template <class U, template <class> class V>
-    BasicClass(BasicClass<U, V>& parent) {
+    template <class U, class V>
+    Class(Class<U, V>& parent) {
         FunctionTemplate()->Inherit(parent.FunctionTemplate());
-    };
-    BasicClass() {};
-};
-
-// class with constructor from v8::Arguments
-template <class T>
-struct Class : BasicClass<T, ArgFactory> {
-    typedef BasicClass<T, ArgFactory> base;
-
-    template <class U, template <class> class V>
-    Class(BasicClass<U, V>& parent) : base(parent) {}
+    }
     Class() {}
 };
 

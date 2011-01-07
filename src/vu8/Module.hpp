@@ -3,40 +3,121 @@
 
 #include <v8.h>
 
+#include <vu8/detail/MakeArgStorage.hpp>
+#include <vu8/detail/Proto.hpp>
+#include <vu8/detail/FromV8Arguments.hpp>
+#include <vu8/ToV8.hpp>
+#include <vu8/Throw.hpp>
+
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/invoke.hpp>
+
 namespace vu8 {
 
-template <class T> struct Class;
+namespace fu = boost::fusion;
+namespace mpl = boost::mpl;
+
+template <class T, class F> struct Class;
 
 struct Module {
-    Module& operator()(char const            *name,
-                       v8::InvocationCallback callback)
+    // register v8 style callback
+    inline Module& operator()(char const            *name,
+                              v8::InvocationCallback callback)
     {
         obj_->Set(v8::String::New(name), v8::FunctionTemplate::New(callback));
         return *this;
     }
 
-    template <class T>
-    Module& operator()(char const *name, Class<T>& clss) {
+    template <class T, class F>
+    inline Module& operator()(char const *name, Class<T, F>& clss) {
         obj_->Set(v8::String::New(name),
                 v8::FunctionTemplate::New(
-                    &Class<T>::singleton_t::ConstructorFunction));
+                    &Class<T, F>::singleton_t::ConstructorFunction));
 
-        // clss.FunctionTemplate()->SetClassName(v8::String::New(name));
+        clss.FunctionTemplate()->SetClassName(v8::String::New(name));
         return *this;
     }
 
     template <class T>
-    Module& operator()(char const *name, T *t) {
+    inline Module& operator()(char const *name, T *t) {
         obj_->Set(v8::String::New(name), v8::External::New(t));
         return *this;
     }
 
+    // Set = operator()
+    inline Module& Set(char const *name, v8::InvocationCallback callback) {
+        return (*this)(name, callback);
+    }
+
+    template <class T, class F>
+    inline Module& Set(char const *name, Class<T, F>& clss) {
+        return (*this)(name, clss);
+    }
+
+    template <class T>
+    inline Module& Set(char const *name, T *t) {
+        return (*this)(name, t);
+    }
+
+    // method with any prototype
+    template <class P, typename detail::FunProto<P>::function_type Ptr>
+    inline Module& Set(char const *name) {
+        return Method< detail::Fun<P, Ptr> >(name);
+    }
+
     // this is a local handle so make it persistent if needs be
-    v8::Local<v8::Object> NewInstance() {
+    inline v8::Local<v8::Object> NewInstance() {
         return obj_->NewInstance();
     }
 
+  private:
+    template <class P>
+    static inline typename P::return_type Invoke(const v8::Arguments& args) {
+        typedef typename
+            detail::MakeArgStorage<typename P::arguments>::type arg_tl;
+
+        typename fu::result_of::as_vector<arg_tl>::type  cpp_args;
+        detail::FromV8Arguments<0>(cpp_args, args);
+
+        return boost::fusion::invoke(P::function_pointer, cpp_args);
+    }
+
+    template <class P>
+    static inline typename boost::disable_if<
+        boost::is_same<void, typename P::return_type>, ValueHandle >::type
+    ForwardReturn(const v8::Arguments& args) {
+        return ToV8(Invoke<P>(args));
+    }
+
+    template <class P>
+    static inline typename boost::enable_if<
+        boost::is_same<void, typename P::return_type>, ValueHandle >::type
+    ForwardReturn(const v8::Arguments& args) {
+        Invoke<P>(args);
+        return v8::Undefined();
+    }
+
+    // TODO: handle adapting return type
+    template <class P>
+    static inline ValueHandle Forward(const v8::Arguments& args) {
+        v8::HandleScope scope;
+        try {
+            return scope.Close(ForwardReturn<P>(args));
+        }
+        catch (std::runtime_error const& e) {
+            return scope.Close(Throw(e.what()));
+        }
+    }
+
+    template <class P>
+    inline Module& Method(char const *name) {
+        obj_->Set(v8::String::New(name), v8::FunctionTemplate::New(&Forward<P>));
+        return *this;
+    }
+
+  public:
     Module() : obj_(v8::ObjectTemplate::New()) {}
+
   private:
     v8::Local<v8::ObjectTemplate> obj_;
 };

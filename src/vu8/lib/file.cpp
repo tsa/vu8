@@ -6,8 +6,13 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <cstdio>
 
 namespace vu8 { namespace file {
+
+bool Rename(char const *src, char const *dest) {
+    return ! std::rename(src, dest);
+}
 
 struct FileBase {
     bool IsOpen() { return stream_.is_open(); }
@@ -20,14 +25,8 @@ struct FileBase {
 };
 
 struct FileWriter : FileBase {
-    bool Open(const v8::Arguments& args) {
-        if (1 != args.Length())
-            throw std::runtime_error(
-                "FileWriter.open: incorrect number of arguments");
-
-        v8::String::Utf8Value utf8Str(args[0]);
-        char const *str = *utf8Str;
-        stream_.open(str, std::ios_base::out);
+    bool Open(char const *path) {
+        stream_.open(path, std::ios_base::out);
         return stream_.good();
     }
 
@@ -48,13 +47,17 @@ struct FileWriter : FileBase {
     }
 
     FileWriter(const v8::Arguments& args) {
-        if (1 == args.Length()) Open(args);
+        if (1 == args.Length()) {
+            v8::String::Utf8Value utf8Str(args[0]);
+            char const *str = *utf8Str;
+            Open(str);
+        }
     }
 };
 
 struct FileReader : FileBase {
-    bool Open(char const *str) {
-        stream_.open(str, std::ios_base::in);
+    bool Open(const char *path) {
+        stream_.open(path, std::ios_base::in);
         return stream_.good();
     }
 
@@ -80,27 +83,30 @@ struct FileReader : FileBase {
 
 static inline v8::Handle<v8::Value> Open() {
     v8::HandleScope scope;
-    BasicClass<FileBase> fileBase;
+    Class<FileBase> fileBase;
     fileBase.Set<void (), &FileBase::Close>("close")
             .Set<bool (), &FileBase::Good>("good")
             .Set<bool (), &FileBase::IsOpen>("is_open")
             .Set<bool (), &FileBase::Eof>("eof")
             ;
 
-    Class<FileWriter> fileWriter(fileBase);
-    fileWriter.Set<bool, &FileWriter::Open>("open")
+    Class<FileWriter, V8ArgFactory<FileWriter> > fileWriter(fileBase);
+    fileWriter.Set<bool(const char *), &FileWriter::Open>("open")
               .Set<void, &FileWriter::Print>("print")
               .Set<void, &FileWriter::Println>("println")
               ;
 
-    Class<FileReader> fileReader(fileBase);
-    fileReader.Set<bool(char const *), &FileReader::Open>("open")
+    Class<FileReader, V8ArgFactory<FileReader> > fileReader(fileBase);
+    fileReader.Set<bool(const char *), &FileReader::Open>("open")
               .Set<v8::Handle<v8::Value>(), &FileReader::GetLine>("getln")
               ;
 
     Module mod;
-    return mod("Writer", fileWriter)
-              ("Reader", fileReader).NewInstance();
+    return mod
+        ("Writer", fileWriter)
+        ("Reader", fileReader)
+        .Set<bool(char const *, char const *), &Rename>("rename")
+        .NewInstance();
 }
 
 } }

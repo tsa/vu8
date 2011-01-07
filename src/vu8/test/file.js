@@ -16,7 +16,10 @@ else {
     write2.close()
 }
 
-var read1 = new file.Reader("punko")
+if (! file.rename("punko", "newpunko"))
+    console.println("could not rename file")
+
+var read1 = new file.Reader("newpunko")
 if (! read1.is_open()) {
     console.println("could not load punko for read")
 }
