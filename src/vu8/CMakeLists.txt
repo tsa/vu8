@@ -13,7 +13,7 @@ option(V8_DEBUG "compile v8 in debugging mode" off)
 option(V8_STATIC "compile static libv8" off)
 option(V8_DYNAMIC "compile dynamic libv8" on)
 
-set(VU8_PLUGIN_LIB_PATH "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "location of vu8 shared library plugins" )
+set(VU8_PLUGIN_PATH "lib" CACHE STRING "location of vu8 shared library plugins" )
 set(VU8_PP_ITERATION_LIMIT 6 CACHE STRING 6)
 
 set(V8_LIB_STATIC ${CMAKE_CURRENT_BINARY_DIR}/v8/libv8${V8_SUFFIX}.a)
@@ -54,6 +54,12 @@ add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 
 add_library(vu8 STATIC Context.cpp)
 add_dependencies(vu8 buildextv8)
+
+file(GLOB vu8_headers *.hpp)
+file(GLOB vu8_detail_headers *.hpp)
+install(PROGRAMS ${V8_LIBS} DESTINATION ${VU8_PLUGIN_PATH})
+install(FILES ${vu8_headers} DESTINATION include/vu8)
+install(FILES ${vu8_detail_headers} DESTINATION include/vu8/detail)
 
 set(Boost_USE_MULTITHREADED ON)
 add_subdirectory(bin)

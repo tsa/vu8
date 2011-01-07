@@ -1,4 +1,4 @@
-.PHONY: default test clean factory proto
+.PHONY: default install test clean factory proto
 
 O := obj
 PP_ARGS := -I/opt/tsa-env/64/include -I.. -I${O}/include -E -P
@@ -11,6 +11,9 @@ default:
 		mkdir -p ${O}; \
 		cd ${O} && cmake .. && ${MAKE}; \
 	fi
+
+install:
+	make -C ${O} install
 
 test:
 	@cd ${O} && ctest --verbose

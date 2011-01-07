@@ -17,6 +17,10 @@ static inline ValueHandle ToV8(std::string const& src) {
     return v8::String::New(src.c_str());
 }
 
+static inline ValueHandle ToV8(char const *src) {
+    return v8::String::New(src);
+}
+
 static inline ValueHandle ToV8(int64_t const src) {
     return v8::Number::New(src);
 }

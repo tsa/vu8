@@ -12,3 +12,4 @@ endif()
 
 target_link_libraries(vu8bin ${V8_LIB_DYNAMIC} ${V8_LINK} ${Boost_LIBRARIES} vu8 dl)
 
+install(TARGETS vu8bin DESTINATION bin)
