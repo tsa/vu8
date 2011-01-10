@@ -8,6 +8,41 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 * v8 cmake - cmake modules to make it easy to build modules for use with "vu8.load". It is recommended that modules use the vu8 meta-programming library to bind C++ to JavaScript but this is not mandatory.
 * vu8bin - A binary for running JavaScript files in a context which has vu8 module loading functions provided.
 
+## vu8 module example
+    #include <vu8/Module.hpp>
+
+    namespace vu8 { namespace console {
+
+    v8::Handle<v8::Value> Println(const v8::Arguments& args) { ... }
+    void Flush() { std::cout.flush(); }
+
+    static inline v8::Handle<v8::Value> Open() {
+        v8::HandleScope scope;
+        Module mod;
+        return mod("println", &Println)
+                  .Set<void(), &Flush>("flush")
+                  .NewInstance();
+    }
+
+    } }
+
+## Turning a vu8 module into a vu8 plugin
+    extern "C" {
+        // vu8_module_init is the entry point
+        v8::Handle<v8::Value> vu8_module_init() {
+            return vu8::console::Open();
+        }
+    }
+
+## Building a vu8 module using vu8 cmake
+    find(Vu8)
+    set(CMAKE_MODULE_PATH ${VU8_MODULE_PATH})
+    include(Vu8)
+    vu8_plugin(module_name "source_file1.cpp;source_file2.cpp")
+    # the above will add the make target and cause the module to be
+    # installed into the vu8 module path
+
+
 ## vu8 class binding example
     #include <vu8/Module.hpp>
     #include <vu8/Class.hpp>
@@ -78,39 +113,6 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
                   .Set<bool(char const *, char const *), &Rename>("rename")
                   .NewInstance();
     }
-
-## vu8 module example
-    #include <vu8/Module.hpp>
-
-    namespace vu8 { namespace console {
-
-    v8::Handle<v8::Value> Println(const v8::Arguments& args) { ... }
-    void Flush() { std::cout.flush(); }
-
-    static inline v8::Handle<v8::Value> Open() {
-        v8::HandleScope scope;
-        Module mod;
-        return mod("println", &Println)
-                  .Set<void(), &Flush>("flush")
-                  .NewInstance();
-    }
-
-    } }
-
-    extern "C" {
-        // vu8_module_init is the entry point
-        v8::Handle<v8::Value> vu8_module_init() {
-            return vu8::console::Open();
-        }
-    }
-
-## Building a vu8 module using vu8 cmake
-    find(Vu8)
-    set(CMAKE_MODULE_PATH ${VU8_MODULE_PATH})
-    include(Vu8)
-    vu8_plugin(module_name "source_file1.cpp;source_file2.cpp")
-    # the above will add the make target and cause the module to be
-    # installed into the vu8 module path
 
 ## Creating a v8 Context capable of using "vu8.load"
     #include <vu8/Context.hpp>
