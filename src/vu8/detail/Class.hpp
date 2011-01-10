@@ -15,15 +15,8 @@ struct PassDirectIf : boost::is_same<
     const v8::Arguments&,
     typename mpl::front<typename P::arguments>::type> {};
 
-template <class F, bool Direct>
-struct ArgFactoryHelper {
-    static inline typename F::type *New(const v8::Arguments& args) {
-        return new typename F::type(args);
-    }
-};
-
 template <class F>
-struct ArgFactoryHelper<F, false> {
+struct ArgFactory {
     static inline typename F::type *New(const v8::Arguments& args) {
         typedef typename
             detail::MakeArgStorage<typename F::arguments>::type arg_tl;
@@ -36,8 +29,12 @@ struct ArgFactoryHelper<F, false> {
     }
 };
 
-template <class F>
-struct ArgFactory : ArgFactoryHelper<F, PassDirectIf<F>::value> {};
+template <class T>
+struct ArgFactory< V8ArgFactory<T> > {
+    static inline T *New(const v8::Arguments& args) {
+        return new T(args);
+    }
+};
 
 } }
 #endif

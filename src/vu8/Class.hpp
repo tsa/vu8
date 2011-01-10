@@ -117,7 +117,7 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
 
     v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
         v8::HandleScope scope;
-        T *wrap = Factory::New(args);
+        T *wrap = detail::ArgFactory<Factory>::New(args);
         v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
@@ -139,11 +139,6 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
     friend class detail::Singleton<self>;
     friend class Class<T, Factory>;
 };
-
-// Factory that calls C++ constructor with v8::Arguments directly
-template <class T>
-struct V8ArgFactory
-  : detail::ArgFactory< Factory<T, const v8::Arguments& > > {};
 
 // Interface for registering C++ classes with v8
 // T = class

@@ -4,7 +4,7 @@
 
 namespace vu8 { namespace console {
 
-v8::Handle<v8::Value> Println(const v8::Arguments& args) {
+v8::Handle<v8::Value> Log(const v8::Arguments& args) {
     bool first = true;
     for (int i = 0; i < args.Length(); ++i) {
         v8::HandleScope handle_scope;
@@ -20,14 +20,12 @@ v8::Handle<v8::Value> Println(const v8::Arguments& args) {
 static inline v8::Handle<v8::Value> Open() {
     v8::HandleScope scope;
     Module mod;
-    mod("println", &Println);
+    mod("log", &Log);
     return mod.NewInstance();
 }
 
 } }
 
 extern "C" {
-    v8::Handle<v8::Value> vu8_module_console() {
-        return vu8::console::Open();
-    }
+    v8::Handle<v8::Value> vu8_module_init() { return vu8::console::Open(); }
 }

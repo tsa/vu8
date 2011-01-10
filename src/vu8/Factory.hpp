@@ -10,6 +10,8 @@
 
 #       include <boost/mpl/vector.hpp>
 
+#       include <v8.h>
+
 
 #       ifndef VU8_FACTORY_MAX_SIZE
 #         define VU8_FACTORY_MAX_SIZE VU8_PP_ITERATION_LIMIT
@@ -21,8 +23,11 @@ namespace vu8 {
 
 struct none {};
 
-// primary template
+// Factory that calls C++ constructor with v8::Arguments directly
+template <class T>
+struct V8ArgFactory {};
 
+// primary template
 template <class C, BOOST_PP_ENUM(VU8_FACTORY_MAX_SIZE, VU8_FACTORY_header, ~)>
 struct Factory;
 
@@ -54,6 +59,8 @@ struct Factory<
     // boost::functional::factory does the same but boost-1.37 doesn't have it
     typedef C type;
     typedef boost::mpl::vector<BOOST_PP_ENUM_PARAMS(n,T)> arguments;
+
+    typedef C* result_type;
 
     C *operator()(BOOST_PP_ENUM(n, VU8_FACTORY_args, ~)) {
         return new C(BOOST_PP_ENUM_PARAMS(n,arg));

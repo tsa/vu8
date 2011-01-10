@@ -112,5 +112,5 @@ static inline v8::Handle<v8::Value> Open() {
 } }
 
 extern "C" {
-    v8::Handle<v8::Value> vu8_module_file() { return vu8::file::Open(); }
+    v8::Handle<v8::Value> vu8_module_init() { return vu8::file::Open(); }
 }

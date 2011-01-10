@@ -37,5 +37,25 @@ struct FromV8<ConvertibleString> {
     }
 };
 
+template <>
+struct FromV8< v8::Handle<v8::Function> > {
+    static inline v8::Handle<v8::Function> exec(ValueHandle value) {
+        if (! value->IsFunction())
+            throw std::runtime_error("expected javascript function");
+
+        return value.As<v8::Function>();
+    }
+};
+
+template <>
+struct FromV8<int> {
+    static inline int exec(ValueHandle value) {
+        if (! value->IsNumber())
+            throw std::runtime_error("expected javascript number");
+
+        return value->ToInt32()->Value();
+    }
+};
+
 } }
 #endif

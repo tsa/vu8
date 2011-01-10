@@ -45,11 +45,7 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
             Throw("loadmodule: could not find shared library"));
     }
 
-    // re-use modPath as entry name
-    modPath = "vu8_module_";
-    modPath.append(modName);
-
-    void *sym = dlsym(dl, modPath.c_str());
+    void *sym = dlsym(dl, "vu8_module_init");
     if (! sym) {
         return scope.Close(
             Throw("loadmodule: initialisation function not found"));

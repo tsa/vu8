@@ -5,7 +5,7 @@ var write1 = new file.Writer()
 var write2 = new file.Writer("bunko")
 
 if (! write1.open("punko") || ! write2.is_open()) {
-    console.println("could not load file for write")
+    console.log("could not load file for write")
 }
 else {
     write1.println("hello friend")
@@ -17,23 +17,23 @@ else {
 }
 
 if (! file.rename("punko", "newpunko"))
-    console.println("could not rename file")
+    console.log("could not rename file")
 
 var read1 = new file.Reader("newpunko")
 if (! read1.is_open()) {
-    console.println("could not load punko for read")
+    console.log("could not load punko for read")
 }
 else for (var line = read1.getln(); line; line = read1.getln()) {
-    console.println("tata",line)
+    console.log("tata",line)
 }
 
 var read2 = new file.Reader()
 read2.open("bunko")
 if (! read2.is_open()) {
-    console.println("could not load bunko for read")
+    console.log("could not load bunko for read")
 }
 else for (var line = read2.getln(); line; line = read2.getln()) {
-    console.println("papa",line)
+    console.log("papa",line)
 }
 
-console.println("exit")
+console.log("exit")

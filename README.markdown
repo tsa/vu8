@@ -98,8 +98,8 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     } }
 
     extern "C" {
-        // vu8_module_<modname> is the entry point
-        v8::Handle<v8::Value> vu8_module_console() {
+        // vu8_module_init is the entry point
+        v8::Handle<v8::Value> vu8_module_init() {
             return vu8::console::Open();
         }
     }
