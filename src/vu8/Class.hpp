@@ -13,7 +13,6 @@
 
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/include/invoke.hpp>
 #include <boost/fusion/include/push_front.hpp>
 #include <boost/fusion/include/join.hpp>
 

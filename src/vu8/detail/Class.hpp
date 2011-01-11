@@ -1,11 +1,15 @@
 #ifndef TSA_VU8_DETAIL_CLASS_HPP
 #define TSA_VU8_DETAIL_CLASS_HPP
 
+#include <vu8/config.hpp>
+
 #include <v8.h>
 
 #include <boost/mpl/front.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/fusion/container/vector.hpp>
+
+#define BOOST_FUSION_INVOKE_MAX_ARITY VU8_PP_ITERATION_LIMIT
 #include <boost/fusion/include/invoke.hpp>
 
 namespace vu8 { namespace detail {

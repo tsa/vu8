@@ -3,14 +3,16 @@
 
 #include <v8.h>
 
+#include <vu8/config.hpp>
 #include <vu8/detail/MakeArgStorage.hpp>
 #include <vu8/detail/Proto.hpp>
 #include <vu8/detail/FromV8Arguments.hpp>
 #include <vu8/ToV8.hpp>
 #include <vu8/Throw.hpp>
 
-#include <boost/fusion/container/vector.hpp>
+#define BOOST_FUSION_INVOKE_MAX_ARITY VU8_PP_ITERATION_LIMIT
 #include <boost/fusion/include/invoke.hpp>
+#include <boost/fusion/container/vector.hpp>
 
 namespace vu8 {
 
