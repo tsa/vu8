@@ -8,10 +8,20 @@
 #include <stdexcept>
 #include <cstdio>
 
+#include <sys/stat.h>
+
 namespace vu8 { namespace file {
 
 bool Rename(char const *src, char const *dest) {
     return ! std::rename(src, dest);
+}
+
+// if the path is already a directory return true, else try to make it
+// and report whether that succeeded
+bool Mkdir(char const *path) {
+    struct stat status;
+    if (! stat(path, &status) && S_ISDIR(status.st_mode)) return true;
+    return ! ::mkdir(path, 0777);
 }
 
 struct FileBase {
@@ -106,6 +116,7 @@ static inline v8::Handle<v8::Value> Open() {
         ("Writer", fileWriter)
         ("Reader", fileReader)
         .Set<bool(char const *, char const *), &Rename>("rename")
+        .Set<bool(char const *), &Mkdir>("mkdir")
         .NewInstance();
 }
 
