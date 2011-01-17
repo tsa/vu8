@@ -75,7 +75,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 
     static inline v8::Handle<v8::Value> Open() {
         v8::HandleScope scope;
-        vu8::BasicClass<FileBase> fileBase;
+        vu8::Class<FileBase> fileBase;
         fileBase.Set<void (), &FileBase::Close>("close")
                 .Set<bool (), &FileBase::Good>("good")
                 .Set<bool (), &FileBase::IsOpen>("is_open")
