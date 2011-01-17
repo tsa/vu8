@@ -47,9 +47,9 @@ include_directories(${V8_INCLUDE_DIR} .. ${VU8_INCLUDE_PATH})
 
 add_custom_command(
     OUTPUT ${V8_LIBS}
-    COMMAND gmake ${V8_TARGET} -C ${CMAKE_CURRENT_BINARY_DIR}
-                               -f ${CMAKE_CURRENT_SOURCE_DIR}/mk/v8
-                               mode=${V8_MODE})
+    COMMAND make ${V8_TARGET} -C ${CMAKE_CURRENT_BINARY_DIR}
+                              -f ${CMAKE_CURRENT_SOURCE_DIR}/mk/v8
+                              mode=${V8_MODE})
 add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 
 add_library(vu8 STATIC Context.cpp)
