@@ -14,7 +14,11 @@ namespace vu8 {
 
 v8::Handle<v8::Value> LoadModule(const v8::Arguments& args);
 
+struct ContextScope;
+
 struct Context {
+    friend struct ContextScope;
+
     typedef v8::Handle<v8::Value> (*ModuleLoadCallback)();
 
     bool IsEmpty() const { return context_.IsEmpty(); }
@@ -37,6 +41,15 @@ struct Context {
   public:
     Context(std::string const& libPath = VU8_PLUGIN_LIB_PATH);
     ~Context();
+};
+
+struct ContextScope {
+    ContextScope(Context& context) : context_(context) {
+        context_.context_->Enter();
+    }
+    ~ContextScope() { context_.context_->Exit(); }
+  private:
+    Context& context_;
 };
 
 }
