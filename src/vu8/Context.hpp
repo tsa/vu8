@@ -27,7 +27,6 @@ struct Context {
         std::string,
         boost::tuple<void *, v8::Persistent<v8::Value> > > modules_t;
 
-    v8::HandleScope                scope_;
     v8::Persistent<v8::Context>    context_;
 
     modules_t    modules_;
@@ -36,7 +35,6 @@ struct Context {
     friend v8::Handle<v8::Value> LoadModule(const v8::Arguments& args);
 
   public:
-    // TODO: default libPath to cmake option
     Context(std::string const& libPath = VU8_PLUGIN_LIB_PATH);
     ~Context();
 };

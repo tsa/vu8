@@ -49,15 +49,16 @@ add_custom_command(
     OUTPUT ${V8_LIBS}
     COMMAND make ${V8_TARGET} -C ${CMAKE_CURRENT_BINARY_DIR}
                               -f ${CMAKE_CURRENT_SOURCE_DIR}/mk/v8
-                              mode=${V8_MODE})
+                              mode=${V8_MODE} CXX=${CMAKE_CXX_COMPILER})
 add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 
-add_library(vu8 STATIC Context.cpp)
+add_library(vu8 SHARED Context.cpp)
 add_dependencies(vu8 buildextv8)
 
 file(GLOB vu8_headers *.hpp)
 file(GLOB vu8_detail_headers *.hpp)
 install(PROGRAMS ${V8_LIBS} DESTINATION ${VU8_PLUGIN_PATH})
+install(TARGETS vu8 DESTINATION lib)
 install(FILES ${vu8_headers} DESTINATION include/vu8)
 install(FILES ${vu8_detail_headers} DESTINATION include/vu8/detail)
 

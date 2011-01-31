@@ -99,6 +99,7 @@ void Context::RunFile(char const *filename) {
         scriptStream << line << '\n';
     }
 
+    v8::HandleScope scope;
     v8::Handle<v8::Script> script =
         v8::Script::Compile(v8::String::New(scriptStream.str().c_str()));
     script->Run();
