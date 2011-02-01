@@ -24,6 +24,10 @@ struct Context {
     bool IsEmpty() const { return context_.IsEmpty(); }
     void RunFile(char const *filename);
 
+    v8::Handle<v8::Value> operator[](char const *key) {
+        return context_->Global()->Get(v8::String::New(key));
+    }
+
   private:
     void Init();
 
@@ -50,6 +54,12 @@ struct ContextScope {
     ~ContextScope() { context_.context_->Exit(); }
   private:
     Context& context_;
+};
+
+struct ContextScopeThreadLock : v8::Locker, ContextScope {
+    ContextScopeThreadLock(Context& context) : ContextScope(context) {}
+  private:
+    v8::HandleScope scope;
 };
 
 }

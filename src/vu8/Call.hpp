@@ -2,6 +2,7 @@
 #   ifndef TSA_VU8_CALL_V8_HPP
 #   define TSA_VU8_CALL_V8_HPP
 #       include <vu8/config.hpp>
+#       include <vu8/ToV8.hpp>
 
 #       include <boost/preprocessor/repetition.hpp>
 #       include <boost/preprocessor/iteration/iterate.hpp>
@@ -23,7 +24,7 @@ typedef v8::Handle<v8::Value>    ValueHandle;
 /// @param args...  C++ arguments to convert to JS arguments using ToV8
 ValueHandle Call(FunctionHandle& func) {
     ValueHandle argv[] = {};
-    func->Call(func, 0, argv);
+    return func->Call(func, 0, argv);
 }
 
 }
@@ -47,7 +48,7 @@ ValueHandle Call(FunctionHandle& func, BOOST_PP_ENUM(n, VU8_CALL_V8_args, ~))
     ValueHandle argv[] = {
         BOOST_PP_ENUM(n, VU8_CALL_V8_tov8, ~)
     };
-    func->Call(func, n, argv);
+    return func->Call(func, n, argv);
 }
 
 }
