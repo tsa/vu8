@@ -28,7 +28,7 @@ template <class T, class Factory = Factory<T> >
 struct Class;
 
 template <class T, class Factory>
-class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
+class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
 
     typedef ClassSingleton<T, Factory> self;
     typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
@@ -135,7 +135,7 @@ class ClassSingleton : detail::Singleton< ClassSingleton<T, Factory> > {
 
     v8::Persistent<v8::FunctionTemplate> func_;
 
-    friend class detail::Singleton<self>;
+    friend class detail::LazySingleton<self>;
     friend class Class<T, Factory>;
 };
 

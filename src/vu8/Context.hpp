@@ -2,6 +2,7 @@
 #define TSA_VU8_CONTEXT_HPP
 
 #include <vu8/config.hpp>
+#include <vu8/Module.hpp>
 
 #include <v8.h>
 
@@ -23,6 +24,10 @@ struct Context {
 
     bool IsEmpty() const { return context_.IsEmpty(); }
     void RunFile(char const *filename);
+
+    void Set(char const *name, Module& module) {
+        context_->Global()->Set(v8::String::New(name), module.NewInstance());
+    }
 
     v8::Handle<v8::Value> operator[](char const *key) {
         return context_->Global()->Get(v8::String::New(key));

@@ -27,5 +27,19 @@ template <typename T>
 typename Singleton<T>::object_creator
 Singleton<T>::create_object;
 
+template <class T>
+class LazySingleton {
+  protected:
+    typedef T object_type;
+
+    static object_type& Instance() {
+        static object_type *obj = 0;
+        if (! obj) obj = new object_type();
+        return *obj;
+    }
+
+    LazySingleton() {}
+};
+
 } }
 #endif
