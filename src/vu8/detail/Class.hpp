@@ -19,22 +19,25 @@ struct PassDirectIf : boost::is_same<
     const v8::Arguments&,
     typename mpl::front<typename P::arguments>::type> {};
 
-template <class F>
-struct ArgFactory {
-    static inline typename F::type *New(const v8::Arguments& args) {
+template <class T, class F>
+class ArgFactory {
+    typedef typename F::template Construct<T>  factory_t;
+
+  public:
+    static inline typename factory_t::type *New(const v8::Arguments& args) {
         typedef typename
-            detail::MakeArgStorage<typename F::arguments>::type arg_tl;
+            detail::MakeArgStorage<typename factory_t::arguments>::type arg_tl;
 
         typedef typename fu::result_of::as_vector<arg_tl>::type arg_vec;
         arg_vec cpp_args;
 
         detail::FromV8Arguments<0>(cpp_args, args);
-        return boost::fusion::invoke(F(), cpp_args);
+        return boost::fusion::invoke(factory_t(), cpp_args);
     }
 };
 
 template <class T>
-struct ArgFactory< V8ArgFactory<T> > {
+struct ArgFactory<T, V8ArgFactory> {
     static inline T *New(const v8::Arguments& args) {
         return new T(args);
     }

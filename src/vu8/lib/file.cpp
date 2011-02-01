@@ -100,13 +100,13 @@ static inline v8::Handle<v8::Value> Open() {
             .Set<bool (), &FileBase::Eof>("eof")
             ;
 
-    Class<FileWriter, V8ArgFactory<FileWriter> > fileWriter(fileBase);
+    Class<FileWriter, V8ArgFactory> fileWriter(fileBase);
     fileWriter.Set<bool(const char *), &FileWriter::Open>("open")
               .Set<void, &FileWriter::Print>("print")
               .Set<void, &FileWriter::Println>("println")
               ;
 
-    Class<FileReader, V8ArgFactory<FileReader> > fileReader(fileBase);
+    Class<FileReader, V8ArgFactory> fileReader(fileBase);
     fileReader.Set<bool(const char *), &FileReader::Open>("open")
               .Set<v8::Handle<v8::Value>(), &FileReader::GetLine>("getln")
               ;

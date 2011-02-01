@@ -24,7 +24,6 @@ namespace vu8 {
 struct none {};
 
 // Factory that calls C++ constructor with v8::Arguments directly
-template <class T>
 struct V8ArgFactory {};
 
 // primary template
@@ -48,23 +47,25 @@ struct Factory;
 namespace vu8 {
 
 // specialization pattern
-template <class C BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM_PARAMS(n, class T)>
+template <BOOST_PP_ENUM_PARAMS(n, class T)>
 struct Factory<
-    C,
     BOOST_PP_ENUM_PARAMS(n,T)
     BOOST_PP_COMMA_IF(n)
     BOOST_PP_ENUM(BOOST_PP_SUB(VU8_FACTORY_MAX_SIZE,n), VU8_FACTORY_default, none)
 >
 {
-    // boost::functional::factory does the same but boost-1.37 doesn't have it
-    typedef C type;
-    typedef boost::mpl::vector<BOOST_PP_ENUM_PARAMS(n,T)> arguments;
+    template <class C>
+    struct Construct {
+        // boost::functional::factory does the same but boost-1.37 doesn't have it
+        typedef C type;
+        typedef boost::mpl::vector<BOOST_PP_ENUM_PARAMS(n,T)> arguments;
 
-    typedef C* result_type;
+        typedef C* result_type;
 
-    C *operator()(BOOST_PP_ENUM(n, VU8_FACTORY_args, ~)) {
-        return new C(BOOST_PP_ENUM_PARAMS(n,arg));
-    }
+        C *operator()(BOOST_PP_ENUM(n, VU8_FACTORY_args, ~)) {
+            return new C(BOOST_PP_ENUM_PARAMS(n,arg));
+        }
+    };
 };
 
 }

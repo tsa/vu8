@@ -85,7 +85,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
         // FileWriter inherits from FileBase
         // Second template argument is a factory.. this one passes the
         // v8::Arguments directly to FileWriter's constructor
-        vu8::Class<FileWriter, V8ArgFactory<FileWriter> > fileWriter(fileBase);
+        vu8::Class<FileWriter, V8ArgFactory> fileWriter(fileBase);
         fileWriter.Set<bool (const std::string&), &FileWriter::Open>("open")
                   .Set<void, &FileWriter::Print>("print")
                   .Set<void, &FileWriter::Println>("println")
@@ -98,7 +98,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
         // This factory calls FileReader's single argument constructor. It
         // converts v8::Arguments to the appropriate c++ arguments.
         vu8::Class<
-            FileReader, Factory<FileReader, std::string const&>
+            FileReader, Factory<std::string const&>
         > fileReader(fileBase);
 
         fileReader.Set<bool (char const *), &FileReader::Open>("open");
