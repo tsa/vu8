@@ -24,7 +24,7 @@ namespace vu8 {
 namespace fu = boost::fusion;
 namespace mpl = boost::mpl;
 
-template <class T, class Factory = Factory<T> >
+template < class T, class Factory = Factory<> >
 struct Class;
 
 template <class T, class Factory>
