@@ -27,7 +27,7 @@ struct none {};
 struct V8ArgFactory {};
 
 // primary template
-template <class C, BOOST_PP_ENUM(VU8_FACTORY_MAX_SIZE, VU8_FACTORY_header, ~)>
+template <BOOST_PP_ENUM(VU8_FACTORY_MAX_SIZE, VU8_FACTORY_header, ~)>
 struct Factory;
 
 }
