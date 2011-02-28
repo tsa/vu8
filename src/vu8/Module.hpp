@@ -20,6 +20,7 @@ namespace fu = boost::fusion;
 namespace mpl = boost::mpl;
 
 template <class T, class F> struct Class;
+template <class T>          struct Singleton;
 
 struct Module {
     // register v8 style callback
@@ -37,6 +38,14 @@ struct Module {
                     &Class<T, F>::singleton_t::ConstructorFunction));
 
         clss.FunctionTemplate()->SetClassName(v8::String::New(name));
+        return *this;
+    }
+
+    template <class T>
+    inline Module& operator()(char const *name, Singleton<T>& singleton) {
+        obj_->Set(v8::String::New(name), singleton.NewInstance());
+
+        singleton.FunctionTemplate()->SetClassName(v8::String::New(name));
         return *this;
     }
 

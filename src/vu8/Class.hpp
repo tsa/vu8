@@ -27,6 +27,9 @@ namespace mpl = boost::mpl;
 template < class T, class Factory = Factory<> >
 struct Class;
 
+template <class T>
+struct Singleton;
+
 template <class T, class Factory>
 class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
 
@@ -137,6 +140,7 @@ class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
 
     friend class detail::LazySingleton<self>;
     friend class Class<T, Factory>;
+    friend class Singleton<T>;
 };
 
 // Interface for registering C++ classes with v8
@@ -189,6 +193,33 @@ struct Class {
         FunctionTemplate()->Inherit(parent.FunctionTemplate());
     }
     Class() {}
+
+    friend class Singleton<T>;
+};
+
+// Wrap a C++ singleton
+template <class T>
+struct Singleton : Class<T> {
+    typedef Class<T> base;
+
+    template <class U, class V>
+    Singleton(Class<U, V>& parent, T* instance) : instance_(instance) {
+        base::FunctionTemplate()->Inherit(parent.FunctionTemplate());
+    }
+    Singleton(T *instance) : instance_(instance) {}
+
+    v8::Persistent<v8::Object> NewInstance() {
+        v8::HandleScope scope;
+        v8::Persistent<v8::Object> obj =
+            v8::Persistent<v8::Object>::New(
+                this->Instance().func_->GetFunction()->NewInstance());
+
+        obj->SetInternalField(0, v8::External::New(instance_));
+        return obj;
+    }
+
+  private:
+    T *instance_;
 };
 
 }
