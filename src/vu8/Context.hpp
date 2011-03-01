@@ -33,9 +33,9 @@ struct Context {
         return context_->Global()->Get(v8::String::New(key));
     }
 
-  private:
     void Init();
 
+  private:
     typedef boost::unordered_map<
         std::string,
         boost::tuple<void *, v8::Persistent<v8::Value> > > modules_t;

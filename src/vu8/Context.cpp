@@ -67,22 +67,19 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     return scope.Close(boost::get<1>(ret.first->second));
 }
 
-void Context::Init() {
-    if (IsEmpty()) {
-        context_ = v8::Context::New();
-        context_->Enter();
+namespace {
+    void initContext(Context& context, v8::Persistent<v8::Context>& v8Context) {
+        v8Context = v8::Context::New();
+        v8Context->Enter();
 
         Module mod;
         mod("load", &LoadModule)
-           ("context", this)
+           ("context", &context)
            ;
 
-        context_->Global()->Set(v8::String::New("vu8"), mod.NewInstance());
+        v8Context->Global()->Set(v8::String::New("vu8"), mod.NewInstance());
     }
-    else context_->Enter();
-}
 
-namespace {
     struct UnlockAtExit {
         UnlockAtExit(v8::Persistent<v8::Context>& context) : context_(context) {}
         ~UnlockAtExit() { context_->Exit(); }
@@ -91,10 +88,16 @@ namespace {
     };
 }
 
+void Context::Init() {
+    initContext(*this, context_);
+    context_->Exit();
+}
+
 void Context::RunFile(char const *filename) {
     v8::HandleScope scope;
     UnlockAtExit unlockCtxt(context_);
-    Init();
+    if (IsEmpty()) initContext(*this, context_);
+    else context_->Enter();
 
     std::ifstream stream(filename);
     if (! stream) {
