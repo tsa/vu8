@@ -91,7 +91,7 @@ struct FromV8<uint64_t> {
 
 template <class T, class A>
 struct FromV8< std::vector<T, A> > {
-    static std::vector<T, A> exec(ValueHandle value) {
+    static inline std::vector<T, A> exec(ValueHandle value) {
         if (! value->IsArray())
             throw std::runtime_error("expected javascript array");
 
@@ -105,6 +105,12 @@ struct FromV8< std::vector<T, A> > {
     }
 };
 
+template <>
+struct FromV8<ValueHandle> {
+    static inline ValueHandle exec(ValueHandle value) {
+        return value;
+    }
+};
 
 } }
 #endif

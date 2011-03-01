@@ -34,7 +34,11 @@ static inline ValueHandle ToV8(float const src) {
 }
 
 static inline ValueHandle ToV8(int32_t const src) {
-    return v8::Integer::New(src);
+    return v8::Int32::New(src);
+}
+
+static inline ValueHandle ToV8(uint32_t const src) {
+    return v8::Uint32::New(src);
 }
 
 static inline ValueHandle ToV8(bool const src) {
