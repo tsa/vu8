@@ -190,10 +190,10 @@ struct Class {
 
     // create javascript object which references externally created C++
     // class
-    static inline ValueHandle CreateExternal(T *clss) {
+    static inline v8::Handle<v8::Object> CreateExternal(T *clss) {
         v8::HandleScope scope;
         v8::Local<v8::Object> obj =
-            Instance().func_->GetFunction()->NewInstance();
+            singleton_t::Instance().func_->GetFunction()->NewInstance();
         obj->SetInternalField(0, v8::External::New(clss));
         return scope.Close(obj);
     }
