@@ -50,6 +50,12 @@ struct MemFunProto<C, R ( BOOST_PP_ENUM_PARAMS(n, A) )> : FunProtoBase<R> {
     typedef R(C::*method_type)(BOOST_PP_ENUM_PARAMS(n, A));
 };
 
+template <class C, class R BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM_PARAMS(n, class A)>
+struct MemFunProto<C const, R ( BOOST_PP_ENUM_PARAMS(n, A) )> : FunProtoBase<R> {
+    typedef mpl::vector<BOOST_PP_ENUM_PARAMS(n, A)>   arguments;
+    typedef R(C::*method_type)(BOOST_PP_ENUM_PARAMS(n, A)) const;
+};
+
 } }
 
 #   undef n
