@@ -188,6 +188,16 @@ struct Class {
         return Instance().FunctionTemplate();
     }
 
+    // create javascript object which references externally created C++
+    // class
+    static inline ValueHandle CreateExternal(T *clss) {
+        v8::HandleScope scope;
+        v8::Local<v8::Object> obj =
+            Instance().func_->GetFunction()->NewInstance();
+        obj->SetInternalField(0, v8::External::New(clss));
+        return scope.Close(obj);
+    }
+
     template <class U, class V>
     Class(Class<U, V>& parent) {
         FunctionTemplate()->Inherit(parent.FunctionTemplate());
