@@ -5,10 +5,9 @@
 #include <vu8/FromV8.hpp>
 #include <vu8/Throw.hpp>
 #include <vu8/Factory.hpp>
+#include <vu8/CallFromV8.hpp>
 #include <vu8/detail/Proto.hpp>
 #include <vu8/detail/Singleton.hpp>
-#include <vu8/detail/MakeArgStorage.hpp>
-#include <vu8/detail/FromV8Arguments.hpp>
 #include <vu8/detail/Class.hpp>
 
 #include <boost/fusion/container/vector.hpp>
@@ -59,20 +58,7 @@ class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
     static inline typename boost::disable_if<
         detail::PassDirectIf<P>, typename P::return_type >::type
     Invoke(T *obj, const v8::Arguments& args) {
-        typedef typename
-            detail::MakeArgStorage<typename P::arguments>::type arg_tl;
-
-        typedef typename mpl::push_front<arg_tl, T *&>::type mem_arg_tl;
-
-        typedef typename fu::result_of::as_vector<arg_tl>::type     arg_vec;
-        typedef typename fu::result_of::as_vector<mem_arg_tl>::type mem_arg_vec;
-
-        fu::vector<T *&> parent(obj);
-        mem_arg_vec cpp_args = fu::join(parent, arg_vec());
-
-        detail::FromV8Arguments<1>(cpp_args, args);
-
-        return boost::fusion::invoke(P::method_pointer, cpp_args);
+        return CallFromV8<P>(*obj, args);
     }
 
     template <class P>

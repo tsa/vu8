@@ -84,6 +84,7 @@ struct Module {
   private:
     template <class P>
     static inline typename P::return_type Invoke(const v8::Arguments& args) {
+        // TODO: replace with CallFromV8
         typedef typename
             detail::MakeArgStorage<typename P::arguments>::type arg_tl;
 

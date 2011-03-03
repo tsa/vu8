@@ -14,10 +14,15 @@ namespace vu8 { namespace detail {
 typedef v8::Handle<v8::Value> ValueHandle;
 
 template <class T>
+struct FromV8Base {
+    typedef T result_type;
+};
+
+template <class T>
 struct FromV8;
 
 template <>
-struct FromV8<std::string> {
+struct FromV8<std::string> : FromV8Base<std::string> {
     static inline std::string exec(ValueHandle value) {
         if (! value->IsString())
             throw std::runtime_error("cannot make string from non-string type");
@@ -28,7 +33,7 @@ struct FromV8<std::string> {
 };
 
 template <>
-struct FromV8<ConvertibleString> {
+struct FromV8<ConvertibleString> : FromV8Base<ConvertibleString> {
     static inline ConvertibleString exec(ValueHandle value) {
         if (! value->IsString())
             throw std::runtime_error("cannot make string from non-string type");
@@ -38,8 +43,18 @@ struct FromV8<ConvertibleString> {
     }
 };
 
+// char const * and char const * have to be copied immediately otherwise
+// the underlying memory will die due to the way v8 strings work.
 template <>
-struct FromV8< v8::Handle<v8::Function> > {
+struct FromV8<char const *> : FromV8<ConvertibleString> {};
+
+template <>
+struct FromV8<char const * const> : FromV8<ConvertibleString> {};
+
+template <>
+struct FromV8< v8::Handle<v8::Function> >
+  : FromV8Base< v8::Handle<v8::Function> >
+{
     static inline v8::Handle<v8::Function> exec(ValueHandle value) {
         if (! value->IsFunction())
             throw std::runtime_error("expected javascript function");
@@ -49,7 +64,7 @@ struct FromV8< v8::Handle<v8::Function> > {
 };
 
 template <>
-struct FromV8<int32_t> {
+struct FromV8<int32_t> : FromV8Base<int32_t> {
     static inline int32_t exec(ValueHandle value) {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
@@ -59,7 +74,7 @@ struct FromV8<int32_t> {
 };
 
 template <>
-struct FromV8<uint32_t> {
+struct FromV8<uint32_t> : FromV8Base<uint32_t> {
     static inline uint32_t exec(ValueHandle value) {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
@@ -69,7 +84,7 @@ struct FromV8<uint32_t> {
 };
 
 template <>
-struct FromV8<int64_t> {
+struct FromV8<int64_t> : FromV8Base<int64_t> {
     static inline int64_t exec(ValueHandle value) {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
@@ -79,7 +94,7 @@ struct FromV8<int64_t> {
 };
 
 template <>
-struct FromV8<uint64_t> {
+struct FromV8<uint64_t> : FromV8Base<uint64_t> {
     static inline uint64_t exec(ValueHandle value) {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
@@ -90,7 +105,7 @@ struct FromV8<uint64_t> {
 
 
 template <class T, class A>
-struct FromV8< std::vector<T, A> > {
+struct FromV8< std::vector<T, A> > : FromV8Base< std::vector<T, A> > {
     static inline std::vector<T, A> exec(ValueHandle value) {
         if (! value->IsArray())
             throw std::runtime_error("expected javascript array");
@@ -106,7 +121,7 @@ struct FromV8< std::vector<T, A> > {
 };
 
 template <>
-struct FromV8<ValueHandle> {
+struct FromV8<ValueHandle> : FromV8Base<ValueHandle> {
     static inline ValueHandle exec(ValueHandle value) {
         return value;
     }
@@ -115,7 +130,7 @@ struct FromV8<ValueHandle> {
 ////////////////////////////////////////////////////////////////////////////
 // extracting classes
 template <class T>
-struct FromV8Ptr {
+struct FromV8Ptr : FromV8Base<T> {
     static inline T exec(ValueHandle value) {
         if (! value->IsObject())
             throw std::runtime_error("expected object");
@@ -134,6 +149,20 @@ struct FromV8<T *> : FromV8Ptr<T *> {};
 
 template <class T>
 struct FromV8<T const *> : FromV8Ptr<T const *> {};
+
+//////////////////////////////////////////////////////////////////////////////
+// deal with references
+template <class T, class U>
+struct FromV8Ref;
+
+template <class U>
+struct FromV8Ref<std::string, U> : FromV8<std::string> {};
+
+template <class T>
+struct FromV8<T const &> : FromV8Ref<T, T const&> {};
+
+template <class T>
+struct FromV8<T&> : FromV8Ref<T, T&> {};
 
 
 } }

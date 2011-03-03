@@ -10,7 +10,8 @@ namespace vu8 {
 using detail::ValueHandle;
 
 template <class T>
-static inline T FromV8(ValueHandle src) {
+static inline typename detail::FromV8<T>::result_type
+FromV8(ValueHandle src) {
     return detail::FromV8<T>::exec(src);
 }
 

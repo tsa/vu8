@@ -53,7 +53,7 @@ static inline ValueHandle CallV8(FunctionHandle& func, BOOST_PP_ENUM(n, VU8_CALL
 
 }
 #   undef VU8_CALL_V8_tov8
-#   undef VU8_CALL_V8_arg
+#   undef VU8_CALL_V8_args
 #   undef n
 
 #endif

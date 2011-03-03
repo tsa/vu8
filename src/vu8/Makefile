@@ -1,4 +1,4 @@
-.PHONY: default install test clean factory proto call
+.PHONY: default install test clean factory proto call callfrom
 
 O := obj
 PP_ARGS := -I/opt/tsa-env/64/include -I.. -I${O}/include -I${O}/v8/include -E -P
@@ -28,4 +28,7 @@ proto:
 	g++ ${PP_ARGS} detail/Proto.hpp
 
 call:
-	g++ ${PP_ARGS} Call.hpp
+	g++ ${PP_ARGS} CallV8.hpp
+
+callfrom:
+	g++ ${PP_ARGS} CallFromV8.hpp

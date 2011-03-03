@@ -2,6 +2,8 @@
 #define TSA_VU8_DETAIL_CLASS_HPP
 
 #include <vu8/config.hpp>
+#include <vu8/detail/MakeArgStorage.hpp>
+#include <vu8/detail/FromV8Arguments.hpp>
 
 #include <v8.h>
 
@@ -25,6 +27,7 @@ class ArgFactory {
 
   public:
     static inline typename factory_t::type *New(const v8::Arguments& args) {
+        // TODO: replace with CallFromV8
         typedef typename
             detail::MakeArgStorage<typename factory_t::arguments>::type arg_tl;
 
