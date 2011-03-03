@@ -112,5 +112,29 @@ struct FromV8<ValueHandle> {
     }
 };
 
+////////////////////////////////////////////////////////////////////////////
+// extracting classes
+template <class T>
+struct FromV8Ptr {
+    static inline T exec(ValueHandle value) {
+        if (! value->IsObject())
+            throw std::runtime_error("expected object");
+
+        v8::Local<v8::Object> obj = value->ToObject();
+
+        if (! obj->InternalFieldCount())
+            throw std::runtime_error("expected c++ wrapped object");
+
+        return static_cast<T>(obj->GetPointerFromInternalField(0));
+    }
+};
+
+template <class T>
+struct FromV8<T *> : FromV8Ptr<T *> {};
+
+template <class T>
+struct FromV8<T const *> : FromV8Ptr<T const *> {};
+
+
 } }
 #endif
