@@ -153,7 +153,21 @@ struct FromV8<T const *> : FromV8Ptr<T const *> {};
 //////////////////////////////////////////////////////////////////////////////
 // deal with references
 template <class T, class U>
-struct FromV8Ref;
+struct FromV8Ref {
+    typedef U result_type;
+
+    static inline U exec(ValueHandle value) {
+        if (! value->IsObject())
+            throw std::runtime_error("expected object");
+
+        v8::Local<v8::Object> obj = value->ToObject();
+
+        if (! obj->InternalFieldCount())
+            throw std::runtime_error("expected c++ wrapped object");
+
+        return *static_cast<T *>(obj->GetPointerFromInternalField(0));
+    }
+};
 
 template <class U>
 struct FromV8Ref<std::string, U> : FromV8<std::string> {};
@@ -163,7 +177,6 @@ struct FromV8<T const &> : FromV8Ref<T, T const&> {};
 
 template <class T>
 struct FromV8<T&> : FromV8Ref<T, T&> {};
-
 
 } }
 #endif
