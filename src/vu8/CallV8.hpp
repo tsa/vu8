@@ -22,7 +22,7 @@ typedef v8::Handle<v8::Value>    ValueHandle;
 /// @tparam T... C++ types of arguments
 /// @param func  v8 function to call
 /// @param args...  C++ arguments to convert to JS arguments using ToV8
-static inline ValueHandle Call(FunctionHandle& func) {
+static inline ValueHandle CallV8(FunctionHandle& func) {
     ValueHandle argv[] = {};
     return func->Call(func, 0, argv);
 }
@@ -30,7 +30,7 @@ static inline ValueHandle Call(FunctionHandle& func) {
 }
 
 #       define BOOST_PP_ITERATION_LIMITS (1, VU8_CALL_V8_MAX_SIZE - 1)
-#       define BOOST_PP_FILENAME_1       "vu8/Call.hpp"
+#       define BOOST_PP_FILENAME_1       "vu8/CallV8.hpp"
 #       include BOOST_PP_ITERATE()
 #   endif // include guard
 
@@ -43,7 +43,7 @@ static inline ValueHandle Call(FunctionHandle& func) {
 namespace vu8 {
 
 template <BOOST_PP_ENUM_PARAMS(n, class T)>
-static inline ValueHandle Call(FunctionHandle& func, BOOST_PP_ENUM(n, VU8_CALL_V8_args, ~))
+static inline ValueHandle CallV8(FunctionHandle& func, BOOST_PP_ENUM(n, VU8_CALL_V8_args, ~))
 {
     ValueHandle argv[] = {
         BOOST_PP_ENUM(n, VU8_CALL_V8_tov8, ~)
