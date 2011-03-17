@@ -1,7 +1,8 @@
 .PHONY: default getv8 buildv8 staticv8 dynamicv8 getscons buildscons clean cmake
 
 # v8ver   := tags/2.3.8
-v8ver   := tags/2.5.9.6
+# v8ver   := tags/2.5.9.6
+v8ver   := tags/3.2.3.1
 # \ trunk branches/2.5 tags/2.5.9.6
 v8svn   := http://v8.googlecode.com/svn/${v8ver}
 
