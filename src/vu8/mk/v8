@@ -11,7 +11,9 @@ arch       := x64
 scons_jobs := 1
 mode       := release
 
-RUN_SCONS  := SCONS_LIB_DIR=../scons/lib64/scons-${scons_v} CXX=${CXX} python2 \
+RUN_SCONS  := SCONS_LIB_DIR=../scons/lib64/scons-${scons_v} \
+              CXX="PATH=${PATH} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ${CXX}" \
+              python2 \
               ../scons/bin/scons -j${scons_jobs} \
               arch=${arch} mode=${mode} snapshot=on
 # \ profilingsupport=off debuggersupport=off
