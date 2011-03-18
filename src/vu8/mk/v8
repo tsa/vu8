@@ -1,10 +1,11 @@
 .PHONY: default getv8 buildv8 staticv8 dynamicv8 getscons buildscons clean cmake
 
-# v8ver   := tags/2.3.8
-# v8ver   := tags/2.5.9.6
-v8ver   := tags/3.2.3.1
+# v8ver   := 2.3.8
+# v8ver   := 2.5.9.6
+v8ver       := 3.2.3.1
+v8_svnver   := tags/${v8ver}
 # \ trunk branches/2.5 tags/2.5.9.6
-v8svn   := http://v8.googlecode.com/svn/${v8ver}
+v8svn   := http://v8.googlecode.com/svn/${v8_svnver}
 
 scons_v    := 2.0.1
 scons      := http://downloads.sourceforge.net/project/scons/scons/${scons_v}/scons-${scons_v}.tar.gz
@@ -40,7 +41,10 @@ scons/build/setup.py: .status
 	touch $@
 
 v8/SConstruct: .status
-	svn checkout ${v8svn} v8
+	svn checkout ${v8svn} v8 || \
+        (wget --no-check-certificate \
+             https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
+         tar xjvf v8-${v8ver}.tar.bz2 && mv v8-${v8ver} v8)
 	sed -i "s/GCC_EXTRA_CCFLAGS = \[\]/GCC_EXTRA_CCFLAGS = [ '-fno-builtin-memcpy' ]/" $@
 	touch $@
 
