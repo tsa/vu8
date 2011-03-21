@@ -119,7 +119,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 
     vu8::Context ctxt;
     // script at location jsFile can now use "vu8.load". An application
-    // that uses vu8::Context must link against libvu8.a
+    // that uses vu8::Context must link against libvu8.
     ctxt.RunFile(jsFile);
 
 ## Using "vu8.load" from JavaScript
