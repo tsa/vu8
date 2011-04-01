@@ -64,6 +64,13 @@ struct FromV8< v8::Handle<v8::Function> >
 };
 
 template <>
+struct FromV8<bool> : FromV8Base<bool> {
+    static inline bool exec(ValueHandle value) {
+        return value->ToBoolean()->Value();
+    }
+};
+
+template <>
 struct FromV8<int32_t> : FromV8Base<int32_t> {
     static inline int32_t exec(ValueHandle value) {
         if (! value->IsNumber())
@@ -96,6 +103,16 @@ struct FromV8<int64_t> : FromV8Base<int64_t> {
 template <>
 struct FromV8<uint64_t> : FromV8Base<uint64_t> {
     static inline uint64_t exec(ValueHandle value) {
+        if (! value->IsNumber())
+            throw std::runtime_error("expected javascript number");
+
+        return value->ToNumber()->Value();
+    }
+};
+
+template <>
+struct FromV8<double> : FromV8Base<double> {
+    static inline double exec(ValueHandle value) {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
 
