@@ -1,6 +1,7 @@
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../share/cmake")
 
 set(VU8_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+set(VU8_INTERNAL_BUILD on)
 find_package(Vu8)
 
 if(NOT VU8_FOUND)

@@ -17,7 +17,7 @@ if(NOT VU8_ROOT)
     endif()
 endif()
 
-if(EXISTS "${VU8_ROOT}/vu8/obj")
+if(VU8_INTERNAL_BUILD)
     # within VU8 build system
     message("building within v8 build system")
     set(VU8_INCLUDE_DIR ${VU8_ROOT})
@@ -28,7 +28,7 @@ endif()
 
 if(EXISTS "${VU8_INCLUDE_DIR}/vu8")
     set(VU8_FOUND true)
-    # TODO: set V8_LIB_DYNAMIC
+    # TODO: set VU8_LIB_DYNAMIC
 endif()
 
 macro(vu8_plugin _name _sources)
