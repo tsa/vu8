@@ -38,15 +38,17 @@ scons/bin/scons: scons/build/setup.py
 	touch $@
 
 scons/build/setup.py: .status
+	rm -rf scons/build
 	mkdir -p scons/build && cd scons/build && wget ${scons} && \
-	tar xzvf scons*.tar.gz && rm *.tar.gz && mv scons*/* .
+		tar xzvf scons*.tar.gz && rm *.tar.gz && mv scons*/* .
 	touch $@
 
 ${v8bld}/SConstruct: .status
 	svn checkout ${v8svn} ${v8bld} || \
-        (wget --no-check-certificate \
-             https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
-         tar xjvf v8-${v8ver}.tar.bz2)
+		(wget --no-check-certificate \
+			https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
+	tar xjvf v8-${v8ver}.tar.bz2)
+	rm -rf v8 ; ln -s v8-${v8ver} v8
 	sed -i "s/GCC_EXTRA_CCFLAGS = \[\]/GCC_EXTRA_CCFLAGS = [ '-fno-builtin-memcpy' ]/" $@
 	touch $@
 
