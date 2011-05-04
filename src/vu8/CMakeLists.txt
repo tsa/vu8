@@ -13,13 +13,17 @@ option(V8_DEBUG "compile v8 in debugging mode" off)
 option(V8_STATIC "compile static libv8" off)
 option(V8_DYNAMIC "compile dynamic libv8" on)
 
-set(VU8_PLUGIN_PATH "lib" CACHE STRING "location of vu8 shared library plugins" )
-set(VU8_PP_ITERATION_LIMIT 10 CACHE STRING 10)
+set(V8_VERSION "3.2.3.1" CACHE STRING "v8 version")
+set(VU8_PLUGIN_PATH "lib" CACHE STRING "location of vu8 shared library plugins")
+set(VU8_PP_ITERATION_LIMIT 10 CACHE STRING
+    "iteration limit for template meta-programming")
 
-set(V8_LIB_STATIC ${CMAKE_CURRENT_BINARY_DIR}/v8/libv8${V8_SUFFIX}.a)
-set(V8_LIB_DYNAMIC ${CMAKE_CURRENT_BINARY_DIR}/v8/libv8${V8_SUFFIX}.so)
+set(V8_LIB_BUILD ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION})
+
+set(V8_LIB_STATIC ${V8_LIB_BUILD}/libv8${V8_SUFFIX}.a)
+set(V8_LIB_DYNAMIC ${V8_LIB_BUILD}/libv8${V8_SUFFIX}.so)
 set(V8_LINK pthread)
-set(V8_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/v8/include)
+set(V8_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION}/include)
 
 if(V8_DEBUG)
     set(V8_MODE debug)
@@ -49,7 +53,8 @@ add_custom_command(
     OUTPUT ${V8_LIBS}
     COMMAND make ${V8_TARGET} -C ${CMAKE_CURRENT_BINARY_DIR}
                               -f ${CMAKE_CURRENT_SOURCE_DIR}/mk/v8
-                              mode=${V8_MODE} CXX=${CMAKE_CXX_COMPILER})
+                              mode=${V8_MODE} CXX=${CMAKE_CXX_COMPILER}
+                              v8ver=${V8_VERSION})
 add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 
 add_library(vu8 SHARED Context.cpp)

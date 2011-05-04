@@ -7,6 +7,8 @@ v8_svnver   := tags/${v8ver}
 # \ trunk branches/2.5 tags/2.5.9.6
 v8svn   := http://v8.googlecode.com/svn/${v8_svnver}
 
+v8bld := v8-${v8ver}
+
 scons_v    := 2.0.1
 scons      := http://downloads.sourceforge.net/project/scons/scons/${scons_v}/scons-${scons_v}.tar.gz
 arch       := x64
@@ -40,27 +42,27 @@ scons/build/setup.py: .status
 	tar xzvf scons*.tar.gz && rm *.tar.gz && mv scons*/* .
 	touch $@
 
-v8/SConstruct: .status
-	svn checkout ${v8svn} v8 || \
+${v8bld}/SConstruct: .status
+	svn checkout ${v8svn} ${v8bld} || \
         (wget --no-check-certificate \
              https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
-         tar xjvf v8-${v8ver}.tar.bz2 && mv v8-${v8ver} v8)
+         tar xjvf v8-${v8ver}.tar.bz2)
 	sed -i "s/GCC_EXTRA_CCFLAGS = \[\]/GCC_EXTRA_CCFLAGS = [ '-fno-builtin-memcpy' ]/" $@
 	touch $@
 
-v8/${libname}.so: v8/SConstruct scons/bin/scons .status
-	cd v8 && ${RUN_SCONS} library=shared
+${v8bld}/${libname}.so: ${v8bld}/SConstruct scons/bin/scons .status
+	cd ${v8bld} && ${RUN_SCONS} library=shared
 
-v8/${libname}.a: v8/SConstruct scons/bin/scons .status
-	cd v8 && ${RUN_SCONS} library=static
+${v8bld}/${libname}.a: ${v8bld}/SConstruct scons/bin/scons .status
+	cd ${v8bld} && ${RUN_SCONS} library=static
 
-staticv8: v8/${libname}.a
-dynamicv8: v8/${libname}.so
+staticv8: ${v8bld}/${libname}.a
+dynamicv8: ${v8bld}/${libname}.so
 
 getscons: scons/build/setup.py
 buildscons: scons/bin/scons
-getv8: v8/SConstruct
+getv8: ${v8bld}/SConstruct
 buildv8: staticv8 dynamicv8
 
 clean:
-	rm -rf scons v8 obj
+	rm -rf scons ${v8bld} obj
