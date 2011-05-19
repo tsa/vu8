@@ -45,9 +45,8 @@ else()
     set(V8_LIBS ${V8_LIB_DYNAMIC})
 endif()
 
-set (VU8_INCLUDE_PATH ${CMAKE_CURRENT_BINARY_DIR}/include)
-configure_file(config.hpp.cmake ${VU8_INCLUDE_PATH}/vu8/config.hpp)
-include_directories(${V8_INCLUDE_DIR} .. ${VU8_INCLUDE_PATH})
+configure_file(config.hpp.cmake
+               ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
 
 add_custom_command(
     OUTPUT ${V8_LIBS}
@@ -56,6 +55,16 @@ add_custom_command(
                               mode=${V8_MODE} CXX=${CMAKE_CXX_COMPILER}
                               v8ver=${V8_VERSION})
 add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
+
+# use FindVu8 to resolve internal dependency
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../share/cmake")
+set(VU8_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
+set(VU8_INTERNAL_BUILD on)
+find_package(Vu8)
+if(NOT VU8_FOUND)
+    message(FATAL_ERROR "could not find vu8")
+endif()
+include_directories(${VU8_INCLUDE_DIRS})
 
 add_library(vu8 SHARED Context.cpp)
 add_dependencies(vu8 buildextv8)

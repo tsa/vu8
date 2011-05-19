@@ -44,6 +44,8 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     if(NOT VU8_FOUND)
         message(FATAL_ERROR "could not find vu8")
     endif()
+
+    include_directories(${VU8_INCLUDE_DIRS})
     vu8_plugin(module_name "source_file1.cpp;source_file2.cpp")
     # the above will add the make target and cause the module to be
     # installed into the vu8 module path
