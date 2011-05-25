@@ -44,10 +44,10 @@ scons/build/setup.py: .status
 	touch $@
 
 ${v8bld}/SConstruct: .status
-	svn checkout ${v8svn} ${v8bld} || \
-		(wget --no-check-certificate \
-			https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
-	tar xjvf v8-${v8ver}.tar.bz2)
+	(wget --no-check-certificate \
+	    https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
+	    tar xjvf v8-${v8ver}.tar.bz2) || \
+	    svn checkout ${v8svn} ${v8bld}
 	rm -rf v8 ; ln -s v8-${v8ver} v8
 	sed -i "s/GCC_EXTRA_CCFLAGS = \[\]/GCC_EXTRA_CCFLAGS = [ '-fno-builtin-memcpy' ]/" $@
 	touch $@

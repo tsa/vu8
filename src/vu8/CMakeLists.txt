@@ -12,6 +12,7 @@ enable_testing()
 option(V8_DEBUG "compile v8 in debugging mode" off)
 option(V8_STATIC "compile static libv8" off)
 option(V8_DYNAMIC "compile dynamic libv8" on)
+option(VU8_FORCE_32 "force 64-bit system to produce 32-bit libraries" off)
 
 set(V8_VERSION "3.2.3.1" CACHE STRING "v8 version")
 set(VU8_PLUGIN_PATH "lib" CACHE STRING "location of vu8 shared library plugins")
@@ -48,12 +49,25 @@ endif()
 configure_file(config.hpp.cmake
                ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
 
+if (VU8_FORCE_32)
+    set(VU8_ARCH ia32)
+else()
+    execute_process(COMMAND uname -s OUTPUT_VARIABLE VU8_ARCH
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (VU8_ARCH STREQUAL x86_64)
+        set(VU8_ARCH x86_64)
+    else()
+        set(VU8_ARCH ia32)
+    endif()
+endif()
+
+
 add_custom_command(
     OUTPUT ${V8_LIBS}
     COMMAND make ${V8_TARGET} -C ${CMAKE_CURRENT_BINARY_DIR}
                               -f ${CMAKE_CURRENT_SOURCE_DIR}/mk/v8
                               mode=${V8_MODE} CXX=${CMAKE_CXX_COMPILER}
-                              v8ver=${V8_VERSION})
+                              v8ver=${V8_VERSION} arch=${VU8_ARCH})
 add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 
 # use FindVu8 to resolve internal dependency
