@@ -189,6 +189,9 @@ struct FromV8Ref {
 template <class U>
 struct FromV8Ref<std::string, U> : FromV8<std::string> {};
 
+template <class T, class U, class R>
+struct FromV8Ref<std::vector<T, U>, R> : FromV8< std::vector<T, U> > {};
+
 template <class T>
 struct FromV8<T const &> : FromV8Ref<T, T const&> {};
 
