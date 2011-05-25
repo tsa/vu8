@@ -12,6 +12,7 @@ enable_testing()
 option(V8_DEBUG "compile v8 in debugging mode" off)
 option(V8_STATIC "compile static libv8" off)
 option(V8_DYNAMIC "compile dynamic libv8" on)
+
 option(VU8_FORCE_32 "force 64-bit system to produce 32-bit libraries" off)
 
 set(V8_VERSION "3.2.3.1" CACHE STRING "v8 version")
@@ -49,8 +50,12 @@ endif()
 configure_file(config.hpp.cmake
                ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
 
-if (VU8_FORCE_32)
+if(VU8_FORCE_32)
     set(VU8_ARCH ia32)
+    add_definitions(-m32)
+    set(CMAKE_EXE_LINKER_FLAGS "-m32")
+    set(CMAKE_SHARED_LINKER_FLAGS "-m32")
+    set(CMAKE_STATIC_LINKER_FLAGS "-m32")
 else()
     execute_process(COMMAND uname -s OUTPUT_VARIABLE VU8_ARCH
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
