@@ -57,15 +57,14 @@ if(VU8_FORCE_32)
     set(CMAKE_SHARED_LINKER_FLAGS "-m32")
     set(CMAKE_STATIC_LINKER_FLAGS "-m32")
 else()
-    execute_process(COMMAND uname -s OUTPUT_VARIABLE VU8_ARCH
+    execute_process(COMMAND uname -m OUTPUT_VARIABLE VU8_ARCH
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
     if (VU8_ARCH STREQUAL x86_64)
-        set(VU8_ARCH x86_64)
+        set(VU8_ARCH x64)
     else()
         set(VU8_ARCH ia32)
     endif()
 endif()
-
 
 add_custom_command(
     OUTPUT ${V8_LIBS}
