@@ -125,8 +125,8 @@ class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
     v8::Persistent<v8::FunctionTemplate> func_;
 
     friend class detail::LazySingleton<self>;
-    friend class Class<T, Factory>;
-    friend class Singleton<T>;
+    friend struct Class<T, Factory>;
+    friend struct Singleton<T>;
 };
 
 // Interface for registering C++ classes with v8
@@ -195,7 +195,7 @@ struct Class {
     }
     Class() {}
 
-    friend class Singleton<T>;
+    friend struct Singleton<T>;
 };
 
 // Wrap a C++ singleton
