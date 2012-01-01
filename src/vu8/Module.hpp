@@ -81,6 +81,10 @@ struct Module {
         return obj_->NewInstance();
     }
 
+    v8::Local<v8::ObjectTemplate> ObjectTemplate() {
+        return obj_;
+    }
+
   private:
     template <class P>
     static inline typename P::return_type Invoke(const v8::Arguments& args) {
