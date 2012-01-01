@@ -22,7 +22,7 @@ static inline ValueHandle ToV8(char const *src) {
 }
 
 static inline ValueHandle ToV8(int64_t const src) {
-    return v8::Number::New(src);
+    return v8::Number::New(static_cast<double>(src));
 }
 
 static inline ValueHandle ToV8(double const src) {
