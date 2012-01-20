@@ -78,8 +78,8 @@ if(NOT OWN_V8)
     add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 endif()
 
-configure_file(config.hpp.cmake
-               ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
+set(config_hpp ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
+configure_file(config.hpp.cmake ${config_hpp})
 
 # use FindVu8 to resolve internal dependency
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../share/cmake")
@@ -104,7 +104,7 @@ file(GLOB vu8_headers *.hpp)
 file(GLOB vu8_detail_headers detail/*.hpp)
 install(PROGRAMS ${V8_LIBS} DESTINATION ${VU8_PLUGIN_PATH})
 install(TARGETS vu8 DESTINATION lib)
-install(FILES ${vu8_headers} DESTINATION include/vu8)
+install(FILES ${vu8_headers} ${config_hpp} DESTINATION include/vu8)
 install(FILES ${vu8_detail_headers} DESTINATION include/vu8/detail)
 
 set(Boost_USE_MULTITHREADED ON)
