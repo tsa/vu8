@@ -76,8 +76,6 @@ if(NOT OWN_V8)
                                   v8ver=${V8_VERSION} arch=${VU8_ARCH}
                                   python=${V8_PYTHON_BIN})
     add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
-    # {
-    # }
 endif()
 
 configure_file(config.hpp.cmake
@@ -103,7 +101,7 @@ if(NOT OWN_V8)
 endif()
 
 file(GLOB vu8_headers *.hpp)
-file(GLOB vu8_detail_headers *.hpp)
+file(GLOB vu8_detail_headers detail/*.hpp)
 install(PROGRAMS ${V8_LIBS} DESTINATION ${VU8_PLUGIN_PATH})
 install(TARGETS vu8 DESTINATION lib)
 install(FILES ${vu8_headers} DESTINATION include/vu8)
