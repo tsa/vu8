@@ -63,8 +63,12 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
         context.modules_.insert(modules_t::value_type(
             modName, boost::make_tuple(
                 dl, v8::Persistent<v8::Value>::New(value))));
-
+#if 0
+    // not sure if closing over persistent handle is a problem or necessary
+    return boost::get<1>(ret.first->second);
+#else
     return scope.Close(boost::get<1>(ret.first->second));
+#endif
 }
 
 namespace {

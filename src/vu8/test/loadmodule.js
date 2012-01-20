@@ -1,4 +1,5 @@
 var console = vu8.load('console')
+
 console.log('yo', 'baby', 4.2, null)
 
 var c2 = vu8.load('console')

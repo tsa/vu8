@@ -20,8 +20,7 @@ v8::Handle<v8::Value> Log(const v8::Arguments& args) {
 static inline v8::Handle<v8::Value> Open() {
     v8::HandleScope scope;
     Module mod;
-    mod("log", &Log);
-    return mod.NewInstance();
+    return scope.Close(mod("log", &Log).NewInstance());
 }
 
 } }

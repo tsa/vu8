@@ -24,10 +24,10 @@ bool Signal(int const pid, int const signal) {
 static inline v8::Handle<v8::Value> Open() {
     v8::HandleScope scope;
     Module mod;
-    return mod
+    return scope.Close(mod
         .Set<char const *(char const *), &Getenv>("getenv")
         .Set<bool(int const, int const), &Signal>("signal")
-        .NewInstance();
+        .NewInstance());
 }
 
 } }

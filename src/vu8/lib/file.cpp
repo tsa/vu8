@@ -112,12 +112,12 @@ static inline v8::Handle<v8::Value> Open() {
               ;
 
     Module mod;
-    return mod
+    return scope.Close(mod
         ("Writer", fileWriter)
         ("Reader", fileReader)
         .Set<bool(char const *, char const *), &Rename>("rename")
         .Set<bool(char const *), &Mkdir>("mkdir")
-        .NewInstance();
+        .NewInstance());
 }
 
 } }

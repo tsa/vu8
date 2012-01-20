@@ -19,9 +19,10 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     static inline v8::Handle<v8::Value> Open() {
         v8::HandleScope scope;
         Module mod;
-        return mod("println", &Println)
+        return scope.Close(
+            mod("println", &Println)
                   .Set<void(), &Flush>("flush")
-                  .NewInstance();
+                  .NewInstance());
     }
 
     } }
@@ -116,10 +117,11 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
         // Create a module to add classes and functions to and return a
         // new instance of the module to be embedded into the v8 context
         vu8::Module mod;
-        return mod("Writer", fileWriter)
-                  ("Reader", fileReader)
-                  .Set<bool(char const *, char const *), &Rename>("rename")
-                  .NewInstance();
+        return scope.Close(
+            mod("Writer", fileWriter)
+               ("Reader", fileReader)
+               .Set<bool(char const *, char const *), &Rename>("rename")
+               .NewInstance());
     }
 
 ## Creating a v8 Context capable of using "vu8.load"
