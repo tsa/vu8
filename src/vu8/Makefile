@@ -1,9 +1,13 @@
-.PHONY: default install test clean factory proto call callfrom
+.PHONY: default build install test clean config
+
+-include Makefile.local
 
 O := obj
-PP_ARGS := -I/opt/tsa-env/64/include -I.. -I${O}/include -I${O}/v8/include -E -P
+PP_ARGS += -I.. -I${O}/include -I${O}/v8/include -E -P
 
-default:
+default: build
+
+build:
 	@if [ -d ${O} ] ; then \
 		make -C ${O}; \
 	else \
@@ -12,6 +16,9 @@ default:
 		cd ${O} && cmake .. && ${MAKE}; \
 	fi
 
+config:
+	cd ${O} && ccmake .
+
 install:
 	make -C ${O} install
 
@@ -19,16 +26,5 @@ test:
 	@cd ${O} && ctest --verbose
 
 clean:
-	${MAKE} -C ${O} clean
-
-factory:
-	g++ ${PP_ARGS} Factory.hpp
-
-proto:
-	g++ ${PP_ARGS} detail/Proto.hpp
-
-call:
-	g++ ${PP_ARGS} CallV8.hpp
-
-callfrom:
-	g++ ${PP_ARGS} CallFromV8.hpp
+	@${MAKE} -C ${O} clean
+	@rm -rf obj

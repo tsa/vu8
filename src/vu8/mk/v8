@@ -2,6 +2,7 @@
 
 # v8ver   := 2.3.8
 # v8ver   := 2.5.9.6
+python      := python
 v8ver       := 3.2.3.1
 v8_svnver   := tags/${v8ver}
 # \ trunk branches/2.5 tags/2.5.9.6
@@ -17,7 +18,7 @@ mode       := release
 
 RUN_SCONS  := SCONS_LIB_DIR=../scons/lib64/scons-${scons_v} \
               CXX="PATH=${PATH} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ${CXX}" \
-              python2 \
+              ${python} \
               ../scons/bin/scons -j${scons_jobs} \
               arch=${arch} mode=${mode} snapshot=on
 # \ profilingsupport=off debuggersupport=off
@@ -34,17 +35,17 @@ default: buildv8
 	touch $@
 
 scons/bin/scons: scons/build/setup.py
-	cd scons/build && python2 setup.py install --prefix=$$PWD/..
+	cd scons/build && ${python} setup.py install --prefix=$$PWD/..
 	touch $@
 
 scons/build/setup.py: .status
 	rm -rf scons/build
-	mkdir -p scons/build && cd scons/build && wget ${scons} && \
+	mkdir -p scons/build && cd scons/build && wget -c ${scons} && \
 		tar xzvf scons*.tar.gz && rm *.tar.gz && mv scons*/* .
 	touch $@
 
 ${v8bld}/SConstruct: .status
-	(wget --no-check-certificate \
+	(wget -c --no-check-certificate \
 	    https://github.com/downloads/tsa/vu8/v8-${v8ver}.tar.bz2 && \
 	    tar xjvf v8-${v8ver}.tar.bz2) || \
 	    svn checkout ${v8svn} ${v8bld}

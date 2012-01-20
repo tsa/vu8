@@ -17,13 +17,7 @@ if(NOT VU8_ROOT)
     endif()
 endif()
 
-if(VU8_INTERNAL_BUILD)
-    # using local vu8 at VU8_ROOT
-    set(VU8_V8_INCLUDE_DIR "${VU8_ROOT}/vu8/obj/v8/include")
-    set(VU8_INCLUDE_DIRS ${VU8_ROOT}
-                         ${VU8_V8_INCLUDE_DIR}
-                         ${VU8_ROOT}/vu8/obj/include)
-else()
+if(NOT VU8_INTERNAL_BUILD)
     set(VU8_INCLUDE_DIRS "${VU8_ROOT}/include")
 endif()
 
@@ -35,6 +29,8 @@ endif()
 macro(vu8_plugin _name _sources)
     add_library(vu8_${_name} SHARED ${_sources})
     target_link_libraries(vu8_${_name} ${V8_LIB_DYNAMIC})
-    add_dependencies(vu8_${_name} buildextv8)
+    # if(NOT VU8_INTERNAL_BUILD)
+    #     add_dependencies(vu8_${_name} buildextv8)
+    # endif()
     install(TARGETS vu8_${_name} DESTINATION ${VU8_PLUGIN_PATH})
 endmacro()
