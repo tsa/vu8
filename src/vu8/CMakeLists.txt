@@ -9,6 +9,7 @@ endif(COMMAND cmake_policy)
 
 enable_testing()
 
+option(VU8_INSTALL_CMAKE_MODULE "install cmake module for find_package(Vu8)" on)
 option(VU8_FORCE_32 "force 64-bit system to produce 32-bit libraries" off)
 
 set(VU8_PLUGIN_PATH "lib" CACHE STRING "location of vu8 shared library plugins")
@@ -96,6 +97,11 @@ install(PROGRAMS ${V8_LIB_DYNAMIC} DESTINATION ${VU8_PLUGIN_PATH})
 install(TARGETS vu8 DESTINATION lib)
 install(FILES ${vu8_headers} ${config_hpp} DESTINATION include/vu8)
 install(FILES ${vu8_detail_headers} DESTINATION include/vu8/detail)
+
+if (VU8_INSTALL_CMAKE_MODULE)
+    install(FILES ../../share/cmake/FindVu8.cmake
+            DESTINATION ${CMAKE_ROOT}/Modules)
+endif()
 
 set(Boost_USE_MULTITHREADED ON)
 add_subdirectory(bin)
