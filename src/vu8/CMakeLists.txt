@@ -15,6 +15,8 @@ set(VU8_PLUGIN_PATH "lib" CACHE STRING "location of vu8 shared library plugins")
 set(VU8_PP_ITERATION_LIMIT 10 CACHE STRING
     "iteration limit for template meta-programming")
 
+set(CMAKE_CXX_FLAGS "-Wall")
+
 if(VU8_FORCE_32)
     set(VU8_ARCH ia32)
     add_definitions(-m32)

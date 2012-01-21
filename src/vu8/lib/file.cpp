@@ -1,8 +1,6 @@
 #include <vu8/Class.hpp>
 #include <vu8/Module.hpp>
 
-#include <boost/multi_index/member.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -25,9 +23,9 @@ bool Mkdir(char const *path) {
 }
 
 struct FileBase {
-    bool IsOpen() { return stream_.is_open(); }
-    bool Good()   { return stream_.good(); }
-    bool Eof()    { return stream_.eof(); }
+    bool IsOpen() const { return stream_.is_open(); }
+    bool Good()   const { return stream_.good(); }
+    bool Eof()    const { return stream_.eof(); }
     void Close()  { stream_.close(); }
 
   protected:
