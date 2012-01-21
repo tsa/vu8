@@ -20,208 +20,210 @@
 
 namespace vu8 {
 
-namespace fu = boost::fusion;
-namespace mpl = boost::mpl;
+    namespace fu = boost::fusion;
+    namespace mpl = boost::mpl;
 
-template < class T, class Factory = Factory<> >
-struct Class;
+    template < class T, class Factory = Factory<> >
+    struct Class;
 
-template <class T>
-struct Singleton;
+    template <class T>
+    struct Singleton;
 
-template <class T, class Factory>
-class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
+    template <class T, class Factory>
+    class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
 
-    typedef ClassSingleton<T, Factory> self;
-    typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
+        typedef ClassSingleton<T, Factory> self;
+        typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
 
-    v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
-        return func_;
-    }
-
-  public:
-    static inline ValueHandle ConstructorFunction(const v8::Arguments& args) {
-        return self::Instance().WrapObject(args);
-    }
-
-  private:
-
-    // invoke passing javascript object argument directly
-    template <class P>
-    static inline typename boost::enable_if<
-        detail::PassDirectIf<P>, typename P::return_type >::type
-    Invoke(T *obj, const v8::Arguments& args) {
-        return (obj->* P::method_pointer)(args);
-    }
-
-    template <class P>
-    static inline typename boost::disable_if<
-        detail::PassDirectIf<P>, typename P::return_type >::type
-    Invoke(T *obj, const v8::Arguments& args) {
-        return CallFromV8<P>(*obj, args);
-    }
-
-    template <class P>
-    static inline typename boost::disable_if<
-        boost::is_same<void, typename P::return_type>, ValueHandle >::type
-    ForwardReturn(T *obj, const v8::Arguments& args) {
-        return ToV8(Invoke<P>(obj, args));
-    }
-
-    template <class P>
-    static inline typename boost::enable_if<
-        boost::is_same<void, typename P::return_type>, ValueHandle >::type
-    ForwardReturn(T *obj, const v8::Arguments& args) {
-        Invoke<P>(obj, args);
-        return v8::Undefined();
-    }
-
-    // every method is run inside a handle scope
-    template <class P>
-    static inline ValueHandle Forward(const v8::Arguments& args) {
-        v8::HandleScope scope;
-        v8::Local<v8::Object> self = args.Holder();
-        v8::Local<v8::External> wrap =
-            v8::Local<v8::External>::Cast(self->GetInternalField(0));
-
-        // this will kill without zero-overhead exception handling
-        try {
-            return scope.Close(ForwardReturn<P>(
-                static_cast<T *>(wrap->Value()), args));
+        v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
+            return func_;
         }
-        catch (std::runtime_error const& e) {
-            return Throw(e.what());
+
+    public:
+        static inline ValueHandle ConstructorFunction(const v8::Arguments& args) {
+            return self::Instance().WrapObject(args);
         }
-    }
 
-    static inline void MadeWeak(v8::Persistent<v8::Value> object,
-                                void                     *parameter)
-    {
-        T *obj = static_cast<T *>(parameter);
-        delete(obj);
-        object.Dispose();
-        object.Clear();
-    }
+    private:
 
-    v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
-        v8::HandleScope scope;
-        T *wrap = detail::ArgFactory<T, Factory>::New(args);
-        v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
-        v8::Persistent<v8::Object> obj =
-            v8::Persistent<v8::Object>::New(localObj);
+        // invoke passing javascript object argument directly
+        template <class P>
+        static inline typename boost::enable_if<
+            detail::PassDirectIf<P>, typename P::return_type >::type
+            Invoke(T *obj, const v8::Arguments& args) {
+                return (obj->* P::method_pointer)(args);
+        }
 
-        obj->SetInternalField(0, v8::External::New(wrap));
-        obj.MakeWeak(wrap, &self::MadeWeak);
-        return scope.Close(localObj);
-    }
+        template <class P>
+        static inline typename boost::disable_if<
+            detail::PassDirectIf<P>, typename P::return_type >::type
+            Invoke(T *obj, const v8::Arguments& args) {
+                return CallFromV8<P>(*obj, args);
+        }
 
-    ClassSingleton()
-      : func_(v8::Persistent<v8::FunctionTemplate>::New(
-                  v8::FunctionTemplate::New()))
-    {
-        func_->InstanceTemplate()->SetInternalFieldCount(1);
-    }
+        template <class P>
+        static inline typename boost::disable_if<
+            boost::is_same<void, typename P::return_type>, ValueHandle >::type
+            ForwardReturn(T *obj, const v8::Arguments& args) {
+                return ToV8(Invoke<P>(obj, args));
+        }
 
-    v8::Persistent<v8::FunctionTemplate> func_;
+        template <class P>
+        static inline typename boost::enable_if<
+            boost::is_same<void, typename P::return_type>, ValueHandle >::type
+            ForwardReturn(T *obj, const v8::Arguments& args) {
+                Invoke<P>(obj, args);
+                return v8::Undefined();
+        }
 
-    friend class detail::LazySingleton<self>;
-    friend struct Class<T, Factory>;
-    friend struct Singleton<T>;
-};
+        // every method is run inside a handle scope
+        template <class P>
+        static inline ValueHandle Forward(const v8::Arguments& args) {
+            v8::HandleScope scope;
+            v8::Local<v8::Object> self = args.Holder();
+            v8::Local<v8::External> wrap =
+                v8::Local<v8::External>::Cast(self->GetInternalField(0));
 
-// Interface for registering C++ classes with v8
-// T = class
-// Factory = factory for allocating c++ object
-//           by default Class uses zero-argument constructor
-template <class T, class Factory>
-struct Class {
-    typedef ClassSingleton<T, Factory>  singleton_t;
+            // this will kill without zero-overhead exception handling
+            try {
+                return scope.Close(ForwardReturn<P>(
+                    static_cast<T *>(wrap->Value()), args));
+            }
+            catch (std::runtime_error const& e) {
+                return Throw(e.what());
+            }
+        }
 
-  private:
-    typedef typename singleton_t::MethodCallback  MethodCallback;
+        static inline void MadeWeak(v8::Persistent<v8::Value> object,
+            void                     *parameter)
+        {
+            T *obj = static_cast<T *>(parameter);
+            delete(obj);
+            object.Dispose();
+            object.Clear();
+        }
 
-    inline singleton_t& Instance() { return singleton_t::Instance(); }
+        v8::Handle<v8::Object> WrapObject(const v8::Arguments& args) {
+            v8::HandleScope scope;
+            T *wrap = detail::ArgFactory<T, Factory>::New(args);
+            v8::Local<v8::Object> localObj = func_->GetFunction()->NewInstance();
+            v8::Persistent<v8::Object> obj =
+                v8::Persistent<v8::Object>::New(localObj);
 
-    // method helper
-    template <class P>
-    inline Class& Method(char const *name) {
-        FunctionTemplate()->PrototypeTemplate()->Set(
-            v8::String::New(name),
-            v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
-        return *this;
-    }
+            obj->SetInternalField(0, v8::External::New(wrap));
+            obj.MakeWeak(wrap, &self::MadeWeak);
+            return scope.Close(localObj);
+        }
 
-  public:
-    // method with any prototype
-    template <class P, typename detail::MemFunProto<T, P>::method_type Ptr>
-    inline Class& Set(char const *name) {
-        return Method< detail::MemFun<T, P, Ptr> >(name);
-    }
+        ClassSingleton()
+            : func_(v8::Persistent<v8::FunctionTemplate>::New(
+            v8::FunctionTemplate::New()))
+        {
+            func_->InstanceTemplate()->SetInternalFieldCount(1);
+        }
 
-    template <class P, typename detail::MemFunProto<T const, P>::method_type Ptr>
-    inline Class& Set(char const *name) {
-        return Method< detail::MemFun<T const, P, Ptr> >(name);
-    }
+        v8::Persistent<v8::FunctionTemplate> func_;
 
-    // passing v8::Arguments directly but modify return type
-    template <class R, R (T::*Ptr)(const v8::Arguments&)>
-    inline Class& Set(char const *name) {
-        return Set<R(const v8::Arguments&), Ptr>(name);
-    }
+        friend class detail::LazySingleton<self>;
+        friend struct Class<T, Factory>;
+        friend struct Singleton<T>;
+    };
 
-    // passing v8::Arguments and return ValueHandle directly
-    template <ValueHandle (T::*Ptr)(const v8::Arguments&)>
-    inline Class& Set(char const *name) {
-        return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
-    }
+    // Interface for registering C++ classes with v8
+    // T = class
+    // Factory = factory for allocating c++ object
+    //           by default Class uses zero-argument constructor
+    template <class T, class Factory>
+    struct Class {
+        typedef ClassSingleton<T, Factory>  singleton_t;
 
-    inline v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
-        return Instance().FunctionTemplate();
-    }
+    private:
+        typedef typename singleton_t::MethodCallback  MethodCallback;
 
-    // create javascript object which references externally created C++
-    // class
-    static inline v8::Handle<v8::Object> CreateExternal(T *clss) {
-        v8::HandleScope scope;
-        v8::Local<v8::Object> obj =
-            singleton_t::Instance().func_->GetFunction()->NewInstance();
-        obj->SetInternalField(0, v8::External::New(clss));
-        return scope.Close(obj);
-    }
+        inline singleton_t& Instance() { return singleton_t::Instance(); }
 
-    template <class U, class V>
-    Class(Class<U, V>& parent) {
-        FunctionTemplate()->Inherit(parent.FunctionTemplate());
-    }
-    Class() {}
+        // method helper
+        template <class P>
+        inline Class& Method(char const *name) {
+            FunctionTemplate()->PrototypeTemplate()->Set(
+                v8::String::New(name),
+                v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
+            return *this;
+        }
 
-    friend struct Singleton<T>;
-};
+    public:
+        // method with any prototype
+        template <class P, typename detail::MemFunProto<T, P>::method_type Ptr>
+        inline Class& Set(char const *name) {
+            return Method< detail::MemFun<T, P, Ptr> >(name);
+        }
 
-// Wrap a C++ singleton
-template <class T>
-struct Singleton : Class<T> {
-    typedef Class<T> base;
+#ifndef WIN32
+        template <class P, typename detail::MemFunProto<T const, P>::method_type Ptr>
+        inline Class& Set(char const *name) {
+            return Method< detail::MemFun<T const, P, Ptr> >(name);
+        }
+#endif
 
-    template <class U, class V>
-    Singleton(Class<U, V>& parent, T* instance) : instance_(instance) {
-        base::FunctionTemplate()->Inherit(parent.FunctionTemplate());
-    }
-    Singleton(T *instance) : instance_(instance) {}
+        // passing v8::Arguments directly but modify return type
+        template <class R, R (T::* Ptr)(const v8::Arguments&)>
+        inline Class& SetV8(char const *name) {
+            return SetV8<R(const v8::Arguments&), Ptr>(name);
+        }
 
-    v8::Persistent<v8::Object> NewInstance() {
-        v8::HandleScope scope;
-        v8::Persistent<v8::Object> obj =
-            v8::Persistent<v8::Object>::New(
+        // passing v8::Arguments and return ValueHandle directly
+        template <ValueHandle (T::* Ptr)(const v8::Arguments&)>
+        inline Class& SetV8(char const *name) {
+            return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
+        }
+
+        inline v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
+            return Instance().FunctionTemplate();
+        }
+
+        // create javascript object which references externally created C++
+        // class
+        static inline v8::Handle<v8::Object> CreateExternal(T *clss) {
+            v8::HandleScope scope;
+            v8::Local<v8::Object> obj =
+                singleton_t::Instance().func_->GetFunction()->NewInstance();
+            obj->SetInternalField(0, v8::External::New(clss));
+            return scope.Close(obj);
+        }
+
+        template <class U, class V>
+        Class(Class<U, V>& parent) {
+            FunctionTemplate()->Inherit(parent.FunctionTemplate());
+        }
+        Class() {}
+
+        friend struct Singleton<T>;
+    };
+
+    // Wrap a C++ singleton
+    template <class T>
+    struct Singleton : Class<T> {
+        typedef Class<T> base;
+
+        template <class U, class V>
+        Singleton(Class<U, V>& parent, T* instance) : instance_(instance) {
+            base::FunctionTemplate()->Inherit(parent.FunctionTemplate());
+        }
+        Singleton(T *instance) : instance_(instance) {}
+
+        v8::Persistent<v8::Object> NewInstance() {
+            v8::HandleScope scope;
+            v8::Persistent<v8::Object> obj =
+                v8::Persistent<v8::Object>::New(
                 this->Instance().func_->GetFunction()->NewInstance());
 
-        obj->SetInternalField(0, v8::External::New(instance_));
-        return obj;
-    }
+            obj->SetInternalField(0, v8::External::New(instance_));
+            return obj;
+        }
 
-  private:
-    T *instance_;
-};
+    private:
+        T *instance_;
+    };
 
 }
 #endif
