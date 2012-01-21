@@ -31,11 +31,16 @@ else()
     endif()
 endif()
 
+if(V8_DEBUG)
+    set(V8_MODE debug)
+    set(V8_SUFFIX _g)
+else()
+    set(V8_MODE release)
+endif()
 
 option(OWN_V8 "use v8 installed on system" on)
 if(NOT OWN_V8)
     option(V8_DEBUG "compile v8 in debugging mode" off)
-    option(V8_STATIC "compile static libv8" off)
     option(V8_DYNAMIC "compile dynamic libv8" on)
     set(V8_PYTHON_BIN "python" CACHE STRING
         "python to use during v8 build process (must be python 2)")
@@ -43,39 +48,22 @@ if(NOT OWN_V8)
 
     set(V8_LIB_BUILD ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION})
 
-    if(V8_DEBUG)
-        set(V8_MODE debug)
-        set(V8_SUFFIX _g)
-    else()
-        set(V8_MODE release)
-    endif()
-
-    set(V8_LIB_STATIC ${V8_LIB_BUILD}/libv8${V8_SUFFIX}.a)
     set(V8_LIB_DYNAMIC ${V8_LIB_BUILD}/libv8${V8_SUFFIX}.so)
     set(V8_LINK pthread)
     set(V8_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION}/include)
 
-    if(V8_STATIC)
-        if(V8_DYNAMIC)
-            set(V8_TARGET buildv8)
-            set(V8_LIBS ${V8_LIB_DYNAMIC} ${V8_LIB_STATIC})
-        else()
-            set(V8_TARGET staticv8)
-            set(V8_LIBS ${V8_LIB_STATIC})
-        endif()
-    else()
-        set(V8_TARGET dynamicv8)
-        set(V8_LIBS ${V8_LIB_DYNAMIC})
-    endif()
+    set(V8_TARGET dynamicv8)
 
     add_custom_command(
-        OUTPUT ${V8_LIBS}
+        OUTPUT ${V8_LIB_DYNAMIC}
         COMMAND make ${V8_TARGET} -C ${CMAKE_CURRENT_BINARY_DIR}
                                   -f ${CMAKE_CURRENT_SOURCE_DIR}/mk/v8
                                   mode=${V8_MODE} CXX=${CMAKE_CXX_COMPILER}
                                   v8ver=${V8_VERSION} arch=${VU8_ARCH}
                                   python=${V8_PYTHON_BIN})
     add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
+else()
+    find_library(V8_LIB_DYNAMIC NAMES v8${V8_SUFFIX})
 endif()
 
 set(config_hpp ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
@@ -102,7 +90,7 @@ endif()
 
 file(GLOB vu8_headers *.hpp)
 file(GLOB vu8_detail_headers detail/*.hpp)
-install(PROGRAMS ${V8_LIBS} DESTINATION ${VU8_PLUGIN_PATH})
+install(PROGRAMS ${V8_LIB_DYNAMIC} DESTINATION ${VU8_PLUGIN_PATH})
 install(TARGETS vu8 DESTINATION lib)
 install(FILES ${vu8_headers} ${config_hpp} DESTINATION include/vu8)
 install(FILES ${vu8_detail_headers} DESTINATION include/vu8/detail)
