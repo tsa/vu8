@@ -22,7 +22,11 @@ static inline ValueHandle ToV8(char const *src) {
 }
 
 static inline ValueHandle ToV8(int64_t const src) {
+#ifdef VU8_CHECK_NUMERIC_BOUNDS
+    // not supported yet
+#else
     return v8::Number::New(src);
+#endif
 }
 
 static inline ValueHandle ToV8(double const src) {
