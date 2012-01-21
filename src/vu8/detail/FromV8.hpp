@@ -96,7 +96,7 @@ struct FromV8<int64_t> : FromV8Base<int64_t> {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
 
-        return value->ToNumber()->Value();
+        return static_cast<int64_t>(value->ToNumber()->Value());
     }
 };
 
@@ -106,7 +106,7 @@ struct FromV8<uint64_t> : FromV8Base<uint64_t> {
         if (! value->IsNumber())
             throw std::runtime_error("expected javascript number");
 
-        return value->ToNumber()->Value();
+        return static_cast<int64_t>(value->ToNumber()->Value());
     }
 };
 
