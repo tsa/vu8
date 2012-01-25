@@ -47,13 +47,16 @@ if(NOT OWN_V8)
     option(V8_DYNAMIC "compile dynamic libv8" on)
     set(V8_PYTHON_BIN "python" CACHE STRING
         "python to use during v8 build process (must be python 2)")
+
     set(V8_VERSION "3.2.3.1" CACHE STRING "v8 version")
+    # latest:
+    # set(V8_VERSION "3.8.8" CACHE STRING "v8 version")
 
     set(V8_LIB_BUILD ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION})
 
     set(V8_LIB_DYNAMIC ${V8_LIB_BUILD}/libv8${V8_SUFFIX}.so)
     set(V8_LINK pthread)
-    set(V8_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION}/include)
+    set(V8_ROOT ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION})
 
     set(V8_TARGET dynamicv8)
 
@@ -66,8 +69,15 @@ if(NOT OWN_V8)
                                   python=${V8_PYTHON_BIN})
     add_custom_target(buildextv8 ALL DEPENDS ${V8_LIB_DYNAMIC})
 else()
-    find_library(V8_LIB_DYNAMIC NAMES v8${V8_SUFFIX})
+    # also search for v8 in install location
+    find_library(V8_LIB_DYNAMIC NAMES v8${V8_SUFFIX}
+                 PATHS "${CMAKE_INSTALL_PREFIX}/lib")
+
+    get_filename_component(V8_LIB_DIR ${V8_LIB_DYNAMIC} PATH)
+    get_filename_component(V8_ROOT ${V8_LIB_DIR} PATH)
 endif()
+
+include_directories("${V8_ROOT}/include")
 
 set(config_hpp ${CMAKE_CURRENT_BINARY_DIR}/include/vu8/config.hpp)
 configure_file(config.hpp.cmake ${config_hpp})
@@ -75,10 +85,6 @@ configure_file(config.hpp.cmake ${config_hpp})
 # use FindVu8 to resolve internal dependency
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../share/cmake")
 set(VU8_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
-
-# if(NOT OWN_V8)
-#     include_directories("${VU8_ROOT}/vu8/obj/v8/include")
-# endif()
 include_directories(${VU8_ROOT} ${VU8_ROOT}/vu8/obj/include)
 
 # to get the vu8_plugin macro
@@ -86,8 +92,8 @@ set(VU8_INTERNAL_BUILD on)
 find_package(Vu8)
 
 add_library(vu8 SHARED Context.cpp)
+target_link_libraries(vu8 ${V8_LIB_DYNAMIC})
 if(NOT OWN_V8)
-    include_directories("${VU8_ROOT}/vu8/obj/v8/include")
     add_dependencies(vu8 buildextv8)
 endif()
 
