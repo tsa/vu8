@@ -23,9 +23,9 @@ bool Mkdir(char const *path) {
 }
 
 struct FileBase {
-    bool IsOpen() const { return stream_.is_open(); }
-    bool Good()   const { return stream_.good(); }
-    bool Eof()    const { return stream_.eof(); }
+    bool IsOpen() { return stream_.is_open(); }
+    bool Good()   { return stream_.good(); }
+    bool Eof()    { return stream_.eof(); }
     void Close()  { stream_.close(); }
 
   protected:

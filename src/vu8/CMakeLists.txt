@@ -59,6 +59,8 @@ if(NOT OWN_V8)
     set(V8_ROOT ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION})
 
     set(V8_TARGET dynamicv8)
+    file(GLOB v8_headers "${V8_ROOT}/include/*.h")
+    install(FILES ${v8_headers} DESTINATION include)
 
     add_custom_command(
         OUTPUT ${V8_LIB_DYNAMIC}
