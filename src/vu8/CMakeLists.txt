@@ -48,9 +48,9 @@ if(NOT OWN_V8)
     set(V8_PYTHON_BIN "python" CACHE STRING
         "python to use during v8 build process (must be python 2)")
 
-    set(V8_VERSION "3.2.3.1" CACHE STRING "v8 version")
+    # set(V8_VERSION "3.2.3.1" CACHE STRING "v8 version")
     # latest:
-    # set(V8_VERSION "3.8.8" CACHE STRING "v8 version")
+    set(V8_VERSION "3.8.8" CACHE STRING "v8 version")
 
     set(V8_LIB_BUILD ${CMAKE_CURRENT_BINARY_DIR}/v8-${V8_VERSION})
 
