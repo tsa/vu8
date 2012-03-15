@@ -18,6 +18,7 @@ set(VU8_PP_ITERATION_LIMIT 10 CACHE STRING
 
 set(CMAKE_CXX_FLAGS "-Wall")
 
+# add_definitions(-fuse-cxa-atexit)
 if(VU8_FORCE_32)
     set(VU8_ARCH ia32)
     add_definitions(-m32)

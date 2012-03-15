@@ -117,8 +117,11 @@ void Context::RunFile(char const *filename) {
         scriptStream << line << '\n';
     }
 
-    v8::Handle<v8::Script> script =
-        v8::Script::Compile(v8::String::New(scriptStream.str().c_str()));
+    std::auto_ptr<v8::ScriptOrigin> origin(
+        new v8::ScriptOrigin(v8::String::New(filename)));
+
+    v8::Handle<v8::Script> script = v8::Script::Compile(
+        v8::String::New(scriptStream.str().c_str()), origin.get());
     script->Run();
 }
 
