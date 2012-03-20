@@ -35,6 +35,10 @@ struct Context {
 
     void Init();
 
+    // Release all tracked data without freeing it, use if running dlclose on
+    // library that contains v8 object to avoid core dump.
+    void Release();
+
   private:
     typedef boost::unordered_map<
         std::string,

@@ -97,6 +97,10 @@ void Context::Init() {
     context_->Exit();
 }
 
+void Context::Release() {
+    context_ = v8::Persistent<v8::Context>::Persistent();
+}
+
 void Context::RunFile(char const *filename) {
     v8::HandleScope scope;
     UnlockAtExit unlockCtxt(context_);
