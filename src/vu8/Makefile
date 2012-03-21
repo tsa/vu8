@@ -1,4 +1,4 @@
-.PHONY: default build install test clean config
+.PHONY: default build install test clean config dist
 
 -include Makefile.local
 
@@ -28,3 +28,7 @@ test:
 clean:
 	@${MAKE} -C ${O} clean
 	@rm -rf obj
+
+dist:
+	ver=vu8-`git tag | tail -n 1` && \
+	cd ../.. && git archive --prefix $$ver/ master | gzip > src/vu8/$$ver.tar.gz

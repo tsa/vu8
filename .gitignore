@@ -1,2 +1,3 @@
 src/vu8/obj
 src/vu8/Makefile.local
+*.tar.gz
