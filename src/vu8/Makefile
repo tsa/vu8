@@ -13,7 +13,7 @@ build:
 	else \
 		rm -rf ${O}; \
 		mkdir -p ${O}; \
-		cd ${O} && cmake .. && ${MAKE}; \
+		cd ${O} && cmake .. ${args} && ${MAKE}; \
 	fi
 
 config:
