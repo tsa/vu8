@@ -150,19 +150,19 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
     console.println("exit")
 
 ## vu8 alternatives
-    * [v8-juice](http://code.google.com/p/v8-juice/)
-      * Has a slightly higher syntactic overhead than vu8.
-      * Has been tested on more compilers.
+* [v8-juice](http://code.google.com/p/v8-juice/)
+    * Has a slightly higher syntactic overhead than vu8.
+    * Has been tested on more compilers.
 
 ## Using vu8bin to load JavaScript files
     % vu8bin file1.js file2.js  # both files run with the same context
 
 ## Dependencies
-    * boost 1.37+
-    * cmake 2.4+
-    * libv8.so (the vu8 build system can help build certain versions of this for you).
+* boost 1.37+
+* cmake 2.4+
+* libv8.so (the vu8 build system can help build certain versions of this for you).
 
 ## TODO
-    * Support translating optional arguments.
-    * v8::Object -> boost::unordered_set translation.
-    * Node/CommonJS packages
+* Support translating optional arguments.
+* v8::Object -> boost::unordered_set translation.
+* Node/CommonJS packages
