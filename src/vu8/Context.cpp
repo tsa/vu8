@@ -20,7 +20,7 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     std::string modName = *str;
 
     v8::Handle<v8::Value> ctxtValue =
-        args.Holder()->Get(v8::String::New("context"));
+        args.Holder()->Get(v8::String::New("__context"));
 
     if (ctxtValue.IsEmpty() || ! ctxtValue->IsExternal()) {
         return scope.Close(
@@ -40,16 +40,14 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
     modPath.append("/libvu8_").append(modName).append(".so");
     void *dl = dlopen(modPath.c_str(), RTLD_LAZY);
 
-    if (! dl) {
+    if (! dl)
         return scope.Close(
             Throw("loadmodule: could not find shared library"));
-    }
 
     void *sym = dlsym(dl, "vu8_module_init");
-    if (! sym) {
+    if (! sym)
         return scope.Close(
             Throw("loadmodule: initialisation function not found"));
-    }
 
     // g++ 3 is broken and can only handle a C-style cast for this
 #if 0
@@ -71,6 +69,29 @@ v8::Handle<v8::Value> LoadModule(const v8::Arguments& args) {
 #endif
 }
 
+v8::Handle<v8::Value> RunFile(const v8::Arguments& args) {
+    v8::HandleScope scope;
+    if (1 != args.Length())
+        return scope.Close(Throw("runfile: incorrect arguments"));
+
+    v8::String::Utf8Value str(args[0]);
+    std::string fileName = *str;
+
+    v8::Handle<v8::Value> ctxtValue =
+        args.Holder()->Get(v8::String::New("__context"));
+
+    if (ctxtValue.IsEmpty() || ! ctxtValue->IsExternal())
+        return scope.Close(
+            Throw("runfile: context is set up incorrectly"));
+
+    Context& context =
+        *reinterpret_cast<Context *>(v8::External::Unwrap(ctxtValue));
+
+    context.RunFile(fileName.c_str());
+
+    return v8::Undefined();
+}
+
 namespace {
     void initContext(Context& context, v8::Persistent<v8::Context>& v8Context) {
         v8Context = v8::Context::New();
@@ -78,7 +99,8 @@ namespace {
 
         Module mod;
         mod("load", &LoadModule)
-           ("context", &context)
+           ("run", &RunFile)
+           ("__context", &context)
            ;
 
         v8Context->Global()->Set(v8::String::New("vu8"), mod.NewInstance());
