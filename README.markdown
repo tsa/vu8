@@ -4,7 +4,7 @@ vu8 is a project that allows one to give JavaScript access to C++ classes and me
 
 ## vu8 also provides
 
-* libvu8.a - a static library to add "vu8.load" to the v8 javascript context. "vu8.load" is a system for loading plugins from shared libraries.
+* libvu8.a - a static library to add "vu8.load" to the v8 JavaScript context. "vu8.load" is a system for loading plugins from shared libraries.
 * v8 cmake - cmake modules to make it easy to build modules for use with "vu8.load". It is recommended that modules use the vu8 meta-programming library to bind C++ to JavaScript but this is not mandatory.
 * vu8bin - A binary for running JavaScript files in a context which has vu8 module loading functions provided.
 
@@ -118,7 +118,7 @@ static inline v8::Handle<v8::Value> Open() {
     > fileReader(fileBase);
 
     fileReader.Set<bool (char const *), &FileReader::Open>("open");
-    // Can convert JS arguments to std::string/char const * amonst other types
+    // Can convert JS arguments to std::string/char const * and other types
     // Code to setup other FileReader methods omitted for brevity
 
     // Create a module to add classes and functions to and return a
@@ -163,7 +163,7 @@ console.println("exit")
 
 ## Create a handle to an externally referenced C++ class.
 ```c++
-// Memory for this won't be touched by Javascript
+// Memory for C++ class will remain when JavaScript object is deleted.
 typedef vu8::Class<MyClass> classWrapper;
 v8::Handle<v8::Value> val = classWrapper::ReferenceExternal(&MyClass::instance());
 // Assuming MyClass::instance() returns reference to class
@@ -171,7 +171,8 @@ v8::Handle<v8::Value> val = classWrapper::ReferenceExternal(&MyClass::instance()
 
 ## Import externally created C++ class into vu8 engine.
 ```c++
-// Memory for object will be reclaimed by Javascript using "delete"
+// Memory for c++ object will be reclaimed by JavaScript using "delete" when
+// JavaScript class is deleted.
 typedef vu8::Class<MyClass> classWrapper;
 v8::Handle<v8::Value> val = classWrapper::ImportExternal(new MyClass());
 ```
