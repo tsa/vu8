@@ -143,7 +143,7 @@ ctxt.RunFile(jsFile);
 ```
 
 ## Using "vu8.load" from JavaScript
-```c++
+```javascript
 // Load the file module from the class binding example and the
 // console module.
 var file    = vu8.load('file'),
