@@ -120,7 +120,7 @@ void Context::Init() {
 }
 
 void Context::Release() {
-    context_ = v8::Persistent<v8::Context>::Persistent();
+    context_ = v8::Persistent<v8::Context>();
 }
 
 void Context::RunFile(char const *filename) {
