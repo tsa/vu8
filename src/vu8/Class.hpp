@@ -180,13 +180,29 @@ struct Class {
     }
 
     // create javascript object which references externally created C++
-    // class
-    static inline v8::Handle<v8::Object> CreateExternal(T *clss) {
+    // class. It will not take ownership of the C++ pointer.
+    static inline v8::Handle<v8::Object> ReferenceExternal(T *ext) {
         v8::HandleScope scope;
         v8::Local<v8::Object> obj =
             singleton_t::Instance().func_->GetFunction()->NewInstance();
-        obj->SetInternalField(0, v8::External::New(clss));
+        obj->SetInternalField(0, v8::External::New(ext));
         return scope.Close(obj);
+    }
+
+    // As ReferenceExternal but delete memory for C++ object when javascript
+    // object is deleted. You must use "new" to allocate ext.
+    static inline v8::Handle<v8::Object> ImportExternal(T *ext) {
+        v8::HandleScope scope;
+        v8::Local<v8::Object> localObj =
+            singleton_t::Instance().func_->GetFunction()->NewInstance();
+
+        v8::Persistent<v8::Object> obj =
+            v8::Persistent<v8::Object>::New(localObj);
+
+        obj->SetInternalField(0, v8::External::New(ext));
+        obj.MakeWeak(ext, &singleton_t::MadeWeak);
+
+        return scope.Close(localObj);
     }
 
     template <class U, class V>
