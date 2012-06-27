@@ -4,6 +4,8 @@ var file    = vu8.load('file'),
 var write1 = new file.Writer()
 var write2 = new file.Writer("bunko")
 
+console.log("write1 is Writer", file.Writer, write1, (write1 instanceof file.Writer))
+
 if (! write1.open("punko") || ! write2.is_open()) {
     console.log("could not load file for write")
 }

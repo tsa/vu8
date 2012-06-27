@@ -29,22 +29,56 @@ struct Class;
 template <class T>
 struct Singleton;
 
+template <class M, class Factory>
+class ClassSingletonFactory {
+
+    M& mixin() { return static_cast<M &>(*this); }
+
+    static inline ValueHandle ConstructorFunction(const v8::Arguments& args) {
+        return M::Instance().WrapObject(args);
+    }
+
+  public:
+    v8::Persistent<v8::FunctionTemplate>& JSFunctionTemplateHelper() {
+        return mixin().jsFunc_;
+    }
+
+    enum { HAS_NULL_FACTORY = false };
+
+    ClassSingletonFactory()
+      : jsFunc_(v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(
+            &ConstructorFunction)))
+    {}
+
+    v8::Persistent<v8::FunctionTemplate> jsFunc_;
+};
+
+template <class M>
+struct ClassSingletonFactory<M, NoFactory> {
+    enum { HAS_NULL_FACTORY = true };
+
+    v8::Persistent<v8::FunctionTemplate>& JSFunctionTemplateHelper() {
+        return static_cast<M &>(*this).func_;
+    }
+};
+
 template <class T, class Factory>
-class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
+class ClassSingleton
+  : detail::LazySingleton< ClassSingleton<T, Factory> >,
+    public ClassSingletonFactory<ClassSingleton<T, Factory>, Factory>
+{
+    friend class ClassSingletonFactory<ClassSingleton<T, Factory>, Factory>;
 
     typedef ClassSingleton<T, Factory> self;
     typedef ValueHandle (T::*MethodCallback)(const v8::Arguments& args);
 
-    v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
+    v8::Persistent<v8::FunctionTemplate>& ClassFunctionTemplate() {
         return func_;
     }
 
-  public:
-    static inline ValueHandle ConstructorFunction(const v8::Arguments& args) {
-        return self::Instance().WrapObject(args);
+    v8::Persistent<v8::FunctionTemplate>& JSFunctionTemplate() {
+        return this->JSFunctionTemplateHelper();
     }
-
-  private:
 
     // invoke passing javascript object argument directly
     template <class P>
@@ -116,9 +150,10 @@ class ClassSingleton : detail::LazySingleton< ClassSingleton<T, Factory> > {
     }
 
     ClassSingleton()
-      : func_(v8::Persistent<v8::FunctionTemplate>::New(
-                  v8::FunctionTemplate::New()))
+      : func_(v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New()))
     {
+        if (! this->HAS_NULL_FACTORY)
+            func_->Inherit(JSFunctionTemplate());
         func_->InstanceTemplate()->SetInternalFieldCount(1);
     }
 
@@ -145,7 +180,7 @@ struct Class {
     // method helper
     template <class P>
     inline Class& Method(char const *name) {
-        FunctionTemplate()->PrototypeTemplate()->Set(
+        ClassFunctionTemplate()->PrototypeTemplate()->Set(
             v8::String::New(name),
             v8::FunctionTemplate::New(&singleton_t::template Forward<P>));
         return *this;
@@ -175,8 +210,12 @@ struct Class {
         return Method<ValueHandle(const v8::Arguments&), Ptr>(name);
     }
 
-    inline v8::Persistent<v8::FunctionTemplate>& FunctionTemplate() {
-        return Instance().FunctionTemplate();
+    inline v8::Persistent<v8::FunctionTemplate>& ClassFunctionTemplate() {
+        return Instance().ClassFunctionTemplate();
+    }
+
+    inline v8::Persistent<v8::FunctionTemplate>& JSFunctionTemplate() {
+        return Instance().JSFunctionTemplate();
     }
 
     // create javascript object which references externally created C++
@@ -207,7 +246,7 @@ struct Class {
 
     template <class U, class V>
     Class(Class<U, V>& parent) {
-        FunctionTemplate()->Inherit(parent.FunctionTemplate());
+        JSFunctionTemplate()->Inherit(parent.ClassFunctionTemplate());
     }
     Class() {}
 
@@ -216,12 +255,12 @@ struct Class {
 
 // Wrap a C++ singleton
 template <class T>
-struct Singleton : Class<T> {
+struct Singleton : Class<T, NoFactory> {
     typedef Class<T> base;
 
     template <class U, class V>
     Singleton(Class<U, V>& parent, T* instance) : instance_(instance) {
-        base::FunctionTemplate()->Inherit(parent.FunctionTemplate());
+        base::JSFunctionTemplate()->Inherit(parent.ClassFunctionTemplate());
     }
     Singleton(T *instance) : instance_(instance) {}
 

@@ -164,7 +164,9 @@ console.println("exit")
 ## Create a handle to an externally referenced C++ class.
 ```c++
 // Memory for C++ class will remain when JavaScript object is deleted.
-typedef vu8::Class<MyClass> classWrapper;
+// vu8::NoFactory avoids creating any constructor for your C++ class from
+// JavaScript, useful for classes you only wish to inject.
+typedef vu8::Class<MyClass, vu8::NoFactory> classWrapper;
 v8::Handle<v8::Value> val = classWrapper::ReferenceExternal(&MyClass::instance());
 // Assuming MyClass::instance() returns reference to class
 ```
@@ -173,7 +175,7 @@ v8::Handle<v8::Value> val = classWrapper::ReferenceExternal(&MyClass::instance()
 ```c++
 // Memory for c++ object will be reclaimed by JavaScript using "delete" when
 // JavaScript class is deleted.
-typedef vu8::Class<MyClass> classWrapper;
+typedef vu8::Class<MyClass, vu8::NoFactory> classWrapper;
 v8::Handle<v8::Value> val = classWrapper::ImportExternal(new MyClass());
 ```
 

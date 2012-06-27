@@ -26,6 +26,9 @@ struct none {};
 // Factory that calls C++ constructor with v8::Arguments directly
 struct V8ArgFactory {};
 
+// Factory that prevents class from being constructed in JavaScript
+struct NoFactory {};
+
 // primary template
 template <BOOST_PP_ENUM(VU8_FACTORY_MAX_SIZE, VU8_FACTORY_header, ~)>
 struct Factory;

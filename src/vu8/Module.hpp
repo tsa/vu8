@@ -33,11 +33,9 @@ struct Module {
 
     template <class T, class F>
     inline Module& operator()(char const *name, Class<T, F>& clss) {
-        obj_->Set(v8::String::New(name),
-                v8::FunctionTemplate::New(
-                    &Class<T, F>::singleton_t::ConstructorFunction));
+        obj_->Set(v8::String::New(name), clss.JSFunctionTemplate()->GetFunction());
 
-        clss.FunctionTemplate()->SetClassName(v8::String::New(name));
+        clss.ClassFunctionTemplate()->SetClassName(v8::String::New(name));
         return *this;
     }
 
@@ -45,7 +43,7 @@ struct Module {
     inline Module& operator()(char const *name, Singleton<T>& singleton) {
         obj_->Set(v8::String::New(name), singleton.NewInstance());
 
-        singleton.FunctionTemplate()->SetClassName(v8::String::New(name));
+        singleton.ClassFunctionTemplate()->SetClassName(v8::String::New(name));
         return *this;
     }
 
