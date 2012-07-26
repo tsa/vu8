@@ -23,7 +23,12 @@ struct Context {
     typedef v8::Handle<v8::Value> (*ModuleLoadCallback)();
 
     bool IsEmpty() const { return context_.IsEmpty(); }
-    void RunFile(char const *filename);
+
+    // Returns false on failure, use v8::TryCatch around it to find out why.
+    bool RunFile(char const *filename);
+
+    // Same as RunFile but for use inside a pre-existing handle scope.
+    bool RunFileInScope(char const *filename);
 
     void Set(char const *name, Module& module) {
         context_->Global()->Set(v8::String::New(name), module.NewInstance());

@@ -87,9 +87,7 @@ v8::Handle<v8::Value> RunFile(const v8::Arguments& args) {
     Context& context =
         *reinterpret_cast<Context *>(v8::External::Unwrap(ctxtValue));
 
-    context.RunFile(fileName.c_str());
-
-    return v8::Undefined();
+    return context.RunFile(fileName.c_str()) ? v8::True() : v8::False();
 }
 
 namespace {
@@ -123,12 +121,16 @@ void Context::Release() {
     context_ = v8::Persistent<v8::Context>();
 }
 
-void Context::RunFile(char const *filename) {
+bool Context::RunFile(char const *filename) {
     v8::HandleScope scope;
     UnlockAtExit unlockCtxt(context_);
     if (IsEmpty()) initContext(*this, context_);
     else context_->Enter();
 
+    return RunFileInScope(filename);
+}
+
+bool Context::RunFileInScope(char const *filename) {
     std::ifstream stream(filename);
     if (! stream) {
         std::string error = "could not locate file ";
@@ -148,7 +150,11 @@ void Context::RunFile(char const *filename) {
 
     v8::Handle<v8::Script> script = v8::Script::Compile(
         v8::String::New(scriptStream.str().c_str()), origin.get());
+
+    if (script.IsEmpty()) return false;
+
     script->Run();
+    return true;
 }
 
 Context::Context(std::string const& libPath) : libPath_(libPath) {}

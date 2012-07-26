@@ -2,9 +2,11 @@
 
 vu8 is a project that allows one to give JavaScript access to C++ classes and methods. The binding library is a header only library that uses template-metaprogramming extensively to make binding as easy as possible for the library user.
 
+This library makes writing node.js modules that take advantage of C++ methods very easy but is also ideal for use in C++ systems where node.js is not required.
+
 ## vu8 also provides
 
-* libvu8.a - a static library to add "vu8.load" to the v8 JavaScript context. "vu8.load" is a system for loading plugins from shared libraries.
+* libvu8.so - a dynamic library to add "vu8.load" to the v8 JavaScript context. "vu8.load" is a system for loading plugins from shared libraries.
 * v8 cmake - cmake modules to make it easy to build modules for use with "vu8.load". It is recommended that modules use the vu8 meta-programming library to bind C++ to JavaScript but this is not mandatory.
 * vu8bin - A binary for running JavaScript files in a context which has vu8 module loading functions provided.
 
