@@ -9,6 +9,7 @@
 #include <vu8/detail/Proto.hpp>
 #include <vu8/detail/Singleton.hpp>
 #include <vu8/detail/Class.hpp>
+#include <vu8/detail/TypeTraits.hpp>
 
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
@@ -64,7 +65,7 @@ struct ClassSingletonFactory<M, NoFactory> {
 
 template <class T, class Factory>
 class ClassSingleton
-  : detail::LazySingleton< ClassSingleton<T, Factory> >,
+  : private detail::LazySingleton< ClassSingleton<T, Factory> >,
     public ClassSingletonFactory<ClassSingleton<T, Factory>, Factory>
 {
     friend class ClassSingletonFactory<ClassSingleton<T, Factory>, Factory>;
@@ -92,22 +93,40 @@ class ClassSingleton
     static inline typename boost::disable_if<
         detail::PassDirectIf<P>, typename P::return_type >::type
     Invoke(T *obj, const v8::Arguments& args) {
-        return CallFromV8<P>(*obj, args);
+      return CallFromV8<P>(*obj, args);
     }
 
     template <class P>
-    static inline typename boost::disable_if<
-        boost::is_same<void, typename P::return_type>, ValueHandle >::type
-    ForwardReturn(T *obj, const v8::Arguments& args) {
-        return ToV8(Invoke<P>(obj, args));
+    static inline typename
+    boost::enable_if<vu8::is_to_v8_convertible<typename P::return_type>,
+    ValueHandle >::type ForwardReturn (T *obj, const v8::Arguments& args) {
+      return ToV8(Invoke<P>(obj, args));
     }
 
     template <class P>
-    static inline typename boost::enable_if<
-        boost::is_same<void, typename P::return_type>, ValueHandle >::type
-    ForwardReturn(T *obj, const v8::Arguments& args) {
-        Invoke<P>(obj, args);
-        return v8::Undefined();
+    static inline typename
+    boost::enable_if<boost::is_void<typename P::return_type>,
+    ValueHandle >::type ForwardReturn (T *obj, const v8::Arguments& args) {
+      Invoke<P>(obj, args);
+      return v8::Undefined();
+    }
+
+    template <class P>
+    static inline typename
+    boost::enable_if<typename P::IS_RETURN_WRAPPED_CLASS,
+    ValueHandle >::type ForwardReturn (T *obj, const v8::Arguments& args) {
+      typedef typename P::ClassSingleton LocalSelf;
+      typedef typename P::return_type ReturnType;
+
+      v8::HandleScope scope;
+      ReturnType* return_value = new ReturnType(Invoke<P>(obj, args));
+      v8::Local<v8::Object> localObj =
+          LocalSelf::Instance().func_->GetFunction()->NewInstance();
+      v8::Persistent<v8::Object> persistentObj =
+          v8::Persistent<v8::Object>::New(localObj);
+      persistentObj->SetInternalField(0, v8::External::New(return_value));
+      persistentObj.MakeWeak(return_value, &LocalSelf::MadeWeak);
+      return scope.Close(localObj);
     }
 
     // every method is run inside a handle scope
