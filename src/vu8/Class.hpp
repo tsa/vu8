@@ -16,6 +16,8 @@
 #include <boost/fusion/include/push_front.hpp>
 #include <boost/fusion/include/join.hpp>
 
+#include <boost/type_traits/is_void.hpp>
+
 #include <iostream>
 #include <stdexcept>
 
