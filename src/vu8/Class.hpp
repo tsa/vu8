@@ -115,13 +115,11 @@ class ClassSingleton
     static inline ValueHandle Forward(const v8::Arguments& args) {
         v8::HandleScope scope;
         v8::Local<v8::Object> self = args.Holder();
-        v8::Local<v8::External> wrap =
-            v8::Local<v8::External>::Cast(self->GetInternalField(0));
 
         // this will kill without zero-overhead exception handling
         try {
             return scope.Close(ForwardReturn<P>(
-                static_cast<T *>(wrap->Value()), args));
+                static_cast<T *>(self->GetPointerFromInternalField(0)), args));
         }
         catch (std::runtime_error const& e) {
             return Throw(e.what());
@@ -144,7 +142,7 @@ class ClassSingleton
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
 
-        obj->SetInternalField(0, v8::External::New(wrap));
+        obj->SetPointerInInternalField(0, wrap);
         obj.MakeWeak(wrap, &self::MadeWeak);
         return scope.Close(localObj);
     }
@@ -224,7 +222,7 @@ struct Class {
         v8::HandleScope scope;
         v8::Local<v8::Object> obj =
             singleton_t::Instance().func_->GetFunction()->NewInstance();
-        obj->SetInternalField(0, v8::External::New(ext));
+        obj->SetPointerInInternalField(0, ext);
         return scope.Close(obj);
     }
 
@@ -238,7 +236,7 @@ struct Class {
         v8::Persistent<v8::Object> obj =
             v8::Persistent<v8::Object>::New(localObj);
 
-        obj->SetInternalField(0, v8::External::New(ext));
+        obj->SetPointerInInternalField(0, ext);
         obj.MakeWeak(ext, &singleton_t::MadeWeak);
 
         return scope.Close(localObj);
@@ -270,7 +268,7 @@ struct Singleton : Class<T, NoFactory> {
             v8::Persistent<v8::Object>::New(
                 this->Instance().func_->GetFunction()->NewInstance());
 
-        obj->SetInternalField(0, v8::External::New(instance_));
+        obj->SetPointerInInternalField(0, instance_);
         return obj;
     }
 
