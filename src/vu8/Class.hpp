@@ -144,7 +144,7 @@ class ClassSingleton
 
         obj->SetPointerInInternalField(0, wrap);
         obj.MakeWeak(wrap, &self::MadeWeak);
-        return scope.Close(localObj);
+        return scope.Close(obj);
     }
 
     ClassSingleton()
@@ -239,7 +239,7 @@ struct Class {
         obj->SetPointerInInternalField(0, ext);
         obj.MakeWeak(ext, &singleton_t::MadeWeak);
 
-        return scope.Close(localObj);
+        return scope.Close(obj);
     }
 
     template <class U, class V>
