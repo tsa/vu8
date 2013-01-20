@@ -149,8 +149,12 @@ struct FromV8<ValueHandle> : FromV8Base<ValueHandle> {
 template <class T>
 struct FromV8Ptr : FromV8Base<T> {
     static inline T exec(ValueHandle value) {
-        if (! value->IsObject())
+        if (! value->IsObject()) {
+            if (value->IsNull()) {
+                return NULL;
+            }
             throw std::runtime_error("expected object");
+        }
 
         v8::Local<v8::Object> obj = value->ToObject();
 
