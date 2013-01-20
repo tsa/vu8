@@ -114,16 +114,32 @@ class ClassSingleton
     template <class P>
     static inline ValueHandle Forward(const v8::Arguments& args) {
         v8::HandleScope scope;
-        v8::Local<v8::Object> self = args.Holder();
 
         // this will kill without zero-overhead exception handling
         try {
-            return scope.Close(ForwardReturn<P>(
-                static_cast<T *>(self->GetPointerFromInternalField(0)), args));
+            return scope.Close(
+                ForwardReturn<P>(
+                    retrieveNativeObjectPtr(args.Holder()),
+                    args
+                )
+            );
         }
         catch (std::runtime_error const& e) {
             return Throw(e.what());
         }
+    }
+
+    static inline T* retrieveNativeObjectPtr(v8::Local<v8::Value> value)
+    {
+        while (value->IsObject()) {
+            v8::Local<v8::Object> obj = value->ToObject();
+            T * native = static_cast<T *>(obj->GetPointerFromInternalField(0));
+            if (native) {
+                return native;
+            }
+            value = obj->GetPrototype();
+        }
+        return NULL;
     }
 
     static inline void MadeWeak(v8::Persistent<v8::Value> object,
